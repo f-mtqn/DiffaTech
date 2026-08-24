@@ -9,6 +9,7 @@ import RegisterCompany from './pages/RegisterCompany';
 import Dashboard from './pages/Dashboard';
 import ChatList from './pages/ChatList';
 import RoomChat from './pages/RoomChat';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -25,6 +26,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

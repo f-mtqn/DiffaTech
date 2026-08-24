@@ -98,9 +98,12 @@ const Dashboard = () => {
                 </svg>
                 <span className="font-medium text-[14px]">Chat HRD</span>
               </Link>
-              <span className="text-[#314158] font-semibold text-[14px]">
+              <Link
+                to="/profile"
+                className="text-[#314158] font-semibold text-[14px] hover:text-[#155DFC] transition-colors"
+              >
                 {user.email || 'User'}
-              </span>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 rounded-lg border-2 border-blue-700 text-blue-700 font-semibold text-[14px]"
