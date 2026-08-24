@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ChatSidebar from '../components/ChatSidebar';
+import { Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 // Dummy messages matching Figma design
 const initialMessages = [
@@ -62,14 +63,24 @@ const RoomChat = () => {
   };
 
   return (
-    <div className="flex min-h-screen max-h-screen bg-slate-50 font-['Inter']">
-      {/* Sidebar */}
-      <ChatSidebar showUserProfile />
+    <div className="min-h-screen max-h-screen flex flex-col bg-slate-50 font-['Inter']">
+      {/* Navbar */}
+      <Navbar />
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0">
+      {/* Chat Area — below navbar */}
+      <div className="flex-1 flex flex-col min-h-0 pt-[68px]">
         {/* Chat Header */}
         <header className="bg-white border-b border-slate-100 px-6 py-4 flex items-center gap-4 shrink-0">
+          {/* Back to chat list */}
+          <Link
+            to="/chat"
+            className="text-[#45556C] hover:text-[#155DFC] transition-colors mr-1"
+            title="Kembali"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
           <div className="w-10 h-10 bg-slate-200 rounded-full overflow-hidden flex items-center justify-center">
             <svg
               width="20"
