@@ -39,7 +39,11 @@ export default function Login() {
       }
 
       // Successful login
-      navigate('/dashboard');
+      if (activeTab === 'perusahaan') {
+        navigate('/company-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch {
       setError('Terjadi kesalahan jaringan atau server. Silakan coba beberapa saat lagi.');
       setLoading(false);
