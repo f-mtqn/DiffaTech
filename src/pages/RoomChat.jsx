@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import ChatSidebar from '../components/ChatSidebar';
 
 // Dummy messages matching Figma design
 const initialMessages = [
@@ -63,12 +64,17 @@ const RoomChat = () => {
   };
 
   return (
-    <div className="min-h-screen max-h-screen flex flex-col bg-slate-50 font-['Inter']">
-      {/* Navbar */}
-      <Navbar />
+    <div className="min-h-screen max-h-screen flex bg-slate-50 font-['Inter']">
+      {/* Sidebar */}
+      <ChatSidebar showUserProfile />
 
-      {/* Chat Area — below navbar */}
-      <div className="flex-1 flex flex-col min-h-0 pt-[68px]">
+      {/* Right content */}
+      <div className="flex-1 flex flex-col min-h-screen max-h-screen">
+        {/* Navbar */}
+        <Navbar />
+
+        {/* Chat Area — below navbar */}
+        <div className="flex-1 flex flex-col min-h-0 pt-[68px]">
         {/* Chat Header */}
         <header className="bg-white border-b border-slate-100 px-6 py-4 flex items-center gap-4 shrink-0">
           {/* Back to chat list */}
@@ -309,6 +315,7 @@ const RoomChat = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

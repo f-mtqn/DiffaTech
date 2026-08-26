@@ -1,38 +1,180 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabaseClient';
+
+// Modal: Job Type
+const JobTypeModal = ({ onClose, selected, onSave }) => {
+  const jobTypes = [
+    'Remote', 'Full-Time', 'Part-Time', 'Freelance', 'Hybrid', 'Internship', 'Contract',
+  ];
+  const [localSelected, setLocalSelected] = useState(
+    selected ? selected.split(', ').filter(Boolean) : []
+  );
+
+  const toggle = (type) => {
+    setLocalSelected((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-md w-[659px] max-w-[95vw] p-6 flex flex-col gap-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h2 className="font-semibold text-[24px] leading-8 text-black">Pilih Tipe Pekerjaan</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+        <hr className="border-[#D1D1D1]" />
+        {/* Options */}
+        <div className="flex flex-wrap gap-6">
+          {jobTypes.map((type) => (
+            <button
+              key={type}
+              onClick={() => toggle(type)}
+              className={`px-6 py-2 rounded-2xl text-[20px] leading-8 font-medium transition-colors ${
+                localSelected.includes(type)
+                  ? 'bg-[#1D4FD7] text-white'
+                  : 'bg-[#F3F7FF]/80 text-black'
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+        {/* Buttons */}
+        <div className="flex justify-end gap-8">
+          <button
+            onClick={onClose}
+            className="px-9 py-3 rounded border border-[#1D4FD7] text-[#1D4FD7] font-medium text-[16px] bg-[#FAFAFA]"
+          >
+            Batal
+          </button>
+          <button
+            onClick={() => { onSave(localSelected.join(', ')); onClose(); }}
+            className="px-9 py-3 rounded bg-[#1D4FD7] text-white font-bold text-[16px]"
+          >
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Modal: Disability
+const DisabilityModal = ({ onClose, selected, onSave }) => {
+  const disabilities = [
+    'Tunanetra', 'Tunarungu', 'Tunadaksa', 'Tunawicara', 'Disleksia',
+  ];
+  const [localSelected, setLocalSelected] = useState(
+    selected ? selected.split(', ').filter(Boolean) : []
+  );
+
+  const toggle = (d) => {
+    setLocalSelected((prev) =>
+      prev.includes(d) ? prev.filter((t) => t !== d) : [...prev, d]
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-md w-[659px] max-w-[95vw] p-6 flex flex-col gap-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h2 className="font-semibold text-[24px] leading-8 text-black">Pilih Tipe Disabilitas</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+        <hr className="border-[#D1D1D1]" />
+        {/* Options */}
+        <div className="flex flex-wrap gap-6">
+          {disabilities.map((d) => (
+            <button
+              key={d}
+              onClick={() => toggle(d)}
+              className={`px-6 py-2 rounded-2xl text-[20px] leading-8 font-medium transition-colors ${
+                localSelected.includes(d)
+                  ? 'bg-[#1D4FD7] text-white'
+                  : 'bg-[#F3F7FF]/80 text-black'
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+        {/* Buttons */}
+        <div className="flex justify-end gap-8">
+          <button
+            onClick={onClose}
+            className="px-9 py-3 rounded border border-[#1D4FD7] text-[#1D4FD7] font-medium text-[16px] bg-[#FAFAFA]"
+          >
+            Batal
+          </button>
+          <button
+            onClick={() => { onSave(localSelected.join(', ')); onClose(); }}
+            className="px-9 py-3 rounded bg-[#1D4FD7] text-white font-bold text-[16px]"
+          >
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Toast notification
+const Toast = ({ message, onClose }) => {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-[#1D4FD7] text-white px-6 py-3 rounded-2xl shadow-xl">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <span className="font-semibold text-[15px]">{message}</span>
+    </div>
+  );
+};
+
+// Add button (blue +)
+const AddButton = ({ onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="w-8 h-9 rounded-xl bg-[#155DFC] flex items-center justify-center text-white shadow-sm hover:bg-[#1447E6] transition-colors shrink-0"
+  >
+    <span className="font-bold text-[18px] leading-none">+</span>
+  </button>
+);
 
 export default function Profile() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Form state
-  const [namaLengkap, setNamaLengkap] = useState('Label');
-  const [email, setEmail] = useState('Label');
-  const [myAbout, setMyAbout] = useState('Label');
-  const [alamat, setAlamat] = useState('Label');
+  // Form state — always editable
+  const [namaLengkap, setNamaLengkap] = useState('');
+  const [emailField, setEmailField] = useState('');
+  const [myAbout, setMyAbout] = useState('');
+  const [alamat, setAlamat] = useState('');
   const [cvUrl, setCvUrl] = useState('');
-
-  // Pengalaman (dynamic list)
   const [pengalaman, setPengalaman] = useState([
-    { posisi: 'Label', perusahaan: 'Label', mulaiKerja: 'Label', akhirKerja: 'Label' },
+    { posisi: '', perusahaan: '', mulaiKerja: '', akhirKerja: '' },
   ]);
-
-  // Sertifikasi (dynamic list)
   const [sertifikasi, setSertifikasi] = useState(['', '']);
+  const [skills, setSkills] = useState(['', '']);
+  const [pendidikanTerakhir, setPendidikanTerakhir] = useState('');
+  const [jobType, setJobType] = useState('');
+  const [tahunPendidikan, setTahunPendidikan] = useState('');
+  const [disabilitas, setDisabilitas] = useState('');
 
-  // Skills (dynamic list)
-  const [skills, setSkills] = useState(['Job 1', 'Job 2']);
-
-  // Bottom fields
-  const [pendidikanTerakhir, setPendidikanTerakhir] = useState('Label');
-  const [jobType, setJobType] = useState('Remote, Full-Time');
-  const [tahunPendidikan, setTahunPendidikan] = useState('Label');
-  const [disabilitas, setDisabilitas] = useState('Label');
-
-  const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [showJobTypeModal, setShowJobTypeModal] = useState(false);
+  const [showDisabilityModal, setShowDisabilityModal] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -40,12 +182,8 @@ export default function Profile() {
   };
 
   // Pengalaman handlers
-  const addPengalaman = () => {
-    setPengalaman([
-      ...pengalaman,
-      { posisi: '', perusahaan: '', mulaiKerja: '', akhirKerja: '' },
-    ]);
-  };
+  const addPengalaman = () =>
+    setPengalaman([...pengalaman, { posisi: '', perusahaan: '', mulaiKerja: '', akhirKerja: '' }]);
   const updatePengalaman = (index, field, value) => {
     const updated = [...pengalaman];
     updated[index][field] = value;
@@ -53,14 +191,15 @@ export default function Profile() {
   };
 
   // Sertifikasi handlers
-  const addSertifikasi = () => {
-    setSertifikasi([...sertifikasi, '']);
+  const addSertifikasi = () => setSertifikasi([...sertifikasi, '']);
+  const updateSertifikasi = (index, value) => {
+    const updated = [...sertifikasi];
+    updated[index] = value;
+    setSertifikasi(updated);
   };
 
   // Skills handlers
-  const addSkill = () => {
-    setSkills([...skills, '']);
-  };
+  const addSkill = () => setSkills([...skills, '']);
   const updateSkill = (index, value) => {
     const updated = [...skills];
     updated[index] = value;
@@ -86,65 +225,26 @@ export default function Profile() {
         },
       });
       if (error) throw error;
-      setIsEditing(false);
+      setToast('Profil berhasil disimpan!');
     } catch (err) {
-      console.error('Gagal menyimpan:', err.message);
+      setToast('Gagal menyimpan. Coba lagi.');
     } finally {
       setSaving(false);
     }
   };
 
-  // Blue plus button component
-  const AddButton = ({ onClick }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-9 h-9 rounded-full bg-[#3B5EEA] flex items-center justify-center text-white shadow-md hover:bg-[#2D52D6] transition-colors shrink-0"
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </button>
-  );
+  const inputClass =
+    'w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] text-[13px] text-[#1D293D] bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all placeholder:text-[#CAD5E2]';
 
   return (
-    <div className="min-h-screen bg-white font-['Inter']">
-      {/* HEADER — same as Dashboard */}
-      <header className="fixed top-0 left-0 right-0 h-[68px] bg-white border-b border-slate-100 shadow-sm z-50 flex items-center justify-between px-8 py-3.5">
-        <Link
-          to="/dashboard"
-          className="font-bold text-[18px] text-[#155DFC] tracking-tight"
-        >
+    <div className="min-h-screen bg-[#F8FAFC] font-['Inter']">
+      {/* HEADER */}
+      <header className="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-[#F1F5F9] z-40 flex items-center justify-between px-8">
+        <Link to="/dashboard" className="font-bold text-[18px] text-[#155DFC] tracking-tight">
           diffaTech
         </Link>
-
-        <nav className="flex items-center gap-7">
-          <Link to="#" className="font-medium text-[14px] text-[#45556C]">
-            Pelatihan & Skil
-          </Link>
-          <Link to="#" className="font-medium text-[14px] text-[#45556C]">
-            Komunitas
-          </Link>
-          <Link to="#" className="font-medium text-[14px] text-[#45556C]">
-            Tentang Kami
-          </Link>
-        </nav>
-
         <div className="flex items-center gap-4">
-          <Link
-            to="/chat"
-            className="relative flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-[#45556C] hover:text-[#155DFC]"
-            title="Chat HRD"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="font-medium text-[14px]">Chat HRD</span>
-          </Link>
-          <Link
-            to="/profile"
-            className="font-semibold text-[14px] text-[#155DFC]"
-          >
+          <Link to="/profile" className="font-semibold text-[14px] text-[#155DFC]">
             {user?.email || 'User'}
           </Link>
           <button
@@ -157,308 +257,237 @@ export default function Profile() {
       </header>
 
       {/* MAIN CONTENT */}
-      <main className="pt-[68px] w-full max-w-[480px] mx-auto px-6 py-8">
-        {/* Profile Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            {/* Avatar */}
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 overflow-hidden shrink-0">
-              <div className="w-full h-full flex items-center justify-center text-white text-lg font-bold">
-                {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
-              </div>
-            </div>
-            <div>
-              <h1 className="font-semibold text-[16px] text-[#1D293D]">profile</h1>
-              <p className="text-[13px] text-[#62748E]">{user?.email || 'm@example.com'}</p>
-            </div>
-          </div>
-          {/* Edit icon */}
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="text-[#3B5EEA] hover:text-[#2D52D6] transition-colors p-1"
-            title="Edit profil"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
+      <main className="pt-[60px] w-full flex justify-center">
+        <div className="w-full max-w-[672px] px-6 py-10 flex flex-col gap-0">
 
-        {/* Divider */}
-        <hr className="border-slate-200 mb-6" />
-
-        {/* Daftar Perusahaan Section Title */}
-        <h2 className="font-bold text-[15px] text-[#1D293D] mb-5">Daftar Perusahaan</h2>
-
-        {/* Nama Lengkap & Email — 2 columns */}
-        <div className="grid grid-cols-2 gap-4 mb-5">
-          <div>
-            <label className="block text-[13px] font-semibold text-[#1D293D] mb-1.5">Nama Lengkap</label>
-            <input
-              type="text"
-              value={namaLengkap}
-              onChange={(e) => setNamaLengkap(e.target.value)}
-              disabled={!isEditing}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-              placeholder="Label"
-            />
-          </div>
-          <div>
-            <label className="block text-[13px] font-semibold text-[#1D293D] mb-1.5">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={!isEditing}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-              placeholder="Label"
-            />
-          </div>
-        </div>
-
-        {/* My About */}
-        <div className="mb-5">
-          <label className="block text-[13px] font-semibold text-[#1D293D] mb-1.5">My About</label>
-          <textarea
-            value={myAbout}
-            onChange={(e) => setMyAbout(e.target.value)}
-            disabled={!isEditing}
-            rows={4}
-            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all resize-none"
-            placeholder="Label"
-          />
-        </div>
-
-        {/* Divider */}
-        <hr className="border-slate-200 mb-5" />
-
-        {/* Alamat */}
-        <div className="mb-5">
-          <label className="block text-[13px] font-semibold text-[#1D293D] mb-1.5">Alamat</label>
-          <input
-            type="text"
-            value={alamat}
-            onChange={(e) => setAlamat(e.target.value)}
-            disabled={!isEditing}
-            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-            placeholder="Label"
-          />
-        </div>
-
-        {/* CV (Masukan URL) */}
-        <div className="mb-5">
-          <label className="block text-[13px] font-semibold text-[#1D293D] mb-1.5">CV (Masukan URL)</label>
-          <button
-            type="button"
-            disabled={!isEditing}
-            className="w-full px-3 py-3 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white text-center hover:border-blue-300 transition-colors disabled:hover:border-gray-200"
-          >
-            Upload CV
-          </button>
-        </div>
-
-        {/* Divider */}
-        <hr className="border-slate-200 mb-5" />
-
-        {/* Pengalaman */}
-        <div className="mb-5">
-          <h3 className="font-bold text-[13px] text-[#1D293D] mb-4">Pengalaman</h3>
-
-          {pengalaman.map((exp, idx) => (
-            <div key={idx} className="mb-4">
-              {/* Posisi & Nama Perusahaan/Komunitas */}
-              <div className="grid grid-cols-2 gap-4 mb-3">
-                <div>
-                  <label className="block text-[12px] font-semibold text-[#1D293D] mb-1">Posisi</label>
-                  <input
-                    type="text"
-                    value={exp.posisi}
-                    onChange={(e) => updatePengalaman(idx, 'posisi', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-                    placeholder="Label"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-semibold text-[#1D293D] mb-1">Nama Perusahaan/Komunitas</label>
-                  <input
-                    type="text"
-                    value={exp.perusahaan}
-                    onChange={(e) => updatePengalaman(idx, 'perusahaan', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-                    placeholder="Label"
-                  />
-                </div>
-              </div>
-
-              {/* Mulai kerja & Akhir kerja */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[12px] font-semibold text-[#1D293D] mb-1">Mulai kerja</label>
-                  <input
-                    type="text"
-                    value={exp.mulaiKerja}
-                    onChange={(e) => updatePengalaman(idx, 'mulaiKerja', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-                    placeholder="Label"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-semibold text-[#1D293D] mb-1">Akhir kerja</label>
-                  <input
-                    type="text"
-                    value={exp.akhirKerja}
-                    onChange={(e) => updatePengalaman(idx, 'akhirKerja', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-                    placeholder="Label"
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Add pengalaman button */}
-          <div className="flex justify-end mt-1">
-            <AddButton onClick={addPengalaman} />
-          </div>
-        </div>
-
-        {/* Divider */}
-        <hr className="border-slate-200 mb-5" />
-
-        {/* Sertifikasi (Masukan URL) */}
-        <div className="mb-5">
-          <h3 className="font-bold text-[13px] text-[#1D293D] mb-3">Sertifikasi (Masukan URL)</h3>
-
-          <div className="space-y-3">
-            {sertifikasi.map((_, idx) => (
-              <button
-                key={idx}
-                type="button"
-                disabled={!isEditing}
-                className="w-full px-3 py-3 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white text-center hover:border-blue-300 transition-colors disabled:hover:border-gray-200"
-              >
-                Upload Sertifikasi
-              </button>
-            ))}
-          </div>
-
-          {/* Add sertifikasi button */}
-          <div className="flex justify-end mt-3">
-            <AddButton onClick={addSertifikasi} />
-          </div>
-        </div>
-
-        {/* Divider */}
-        <hr className="border-slate-200 mb-5" />
-
-        {/* Skills */}
-        <div className="mb-5">
-          <h3 className="font-bold text-[13px] text-[#1D293D] mb-3">Skills</h3>
-
-          <div className="space-y-0">
-            {skills.map((skill, idx) => (
-              <div key={idx}>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={skill}
-                    onChange={(e) => updateSkill(idx, e.target.value)}
-                    className="w-full px-3 py-3 border-b border-gray-200 text-[14px] text-[#1D293D] bg-white outline-none focus:border-blue-400 transition-all"
-                    placeholder="Skill"
-                  />
-                ) : (
-                  <div className="w-full px-3 py-3 border-b border-gray-200 text-[14px] text-[#1D293D]">
-                    {skill || '-'}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Add skill button */}
-          <div className="flex justify-end mt-3">
-            <AddButton onClick={addSkill} />
-          </div>
-        </div>
-
-        {/* Divider */}
-        <hr className="border-slate-200 mb-5" />
-
-        {/* Pendidikan Terakhir & Job Type — 2 columns */}
-        <div className="grid grid-cols-2 gap-4 mb-5">
-          <div>
-            <label className="block text-[13px] font-semibold text-[#3B5EEA] mb-1.5">Pendidikan Terakhir</label>
-            <input
-              type="text"
-              value={pendidikanTerakhir}
-              onChange={(e) => setPendidikanTerakhir(e.target.value)}
-              disabled={!isEditing}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-              placeholder="Label"
-            />
-          </div>
-          <div>
-            <label className="block text-[13px] font-semibold text-[#3B5EEA] mb-1.5">Job Type</label>
-            <input
-              type="text"
-              value={jobType}
-              onChange={(e) => setJobType(e.target.value)}
-              disabled={!isEditing}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-              placeholder="Remote, Full-Time"
-            />
-          </div>
-        </div>
-
-        {/* Tahun Pendidikan & Disabilitas — 2 columns */}
-        <div className="grid grid-cols-2 gap-4 mb-10">
-          <div>
-            <label className="block text-[13px] font-semibold text-[#3B5EEA] mb-1.5">Tahun Pendidikan</label>
-            <input
-              type="text"
-              value={tahunPendidikan}
-              onChange={(e) => setTahunPendidikan(e.target.value)}
-              disabled={!isEditing}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-              placeholder="Label"
-            />
-          </div>
-          <div>
-            <label className="block text-[13px] font-semibold text-[#3B5EEA] mb-1.5">Disabilitas</label>
-            <input
-              type="text"
-              value={disabilitas}
-              onChange={(e) => setDisabilitas(e.target.value)}
-              disabled={!isEditing}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-[13px] text-gray-400 bg-white disabled:bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all"
-              placeholder="Label"
-            />
-          </div>
-        </div>
-
-        {/* Ubah Profil Button */}
-        <div className="flex justify-center mb-10">
-          <button
-            type="button"
-            onClick={isEditing ? handleSave : () => setIsEditing(true)}
-            disabled={saving}
-            className="px-8 py-3 rounded-full bg-[#3B5EEA] text-white font-semibold text-[14px] flex items-center gap-2 hover:bg-[#2D52D6] transition-colors shadow-lg disabled:opacity-70"
-          >
-            {saving ? 'Menyimpan...' : 'Ubah Profil'}
-            {!saving && (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          {/* TOP BANNER — disability-friendly badge + heading */}
+          <div className="flex flex-col items-center gap-3 mb-8">
+            {/* Badge */}
+            <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-full px-3 py-1.5 shadow-sm">
+              {/* Accessibility icon */}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="5" r="2" fill="#62748E"/>
+                <path d="M12 7v5M9 9l-3 5h4l1 4h2l1-4h4l-3-5" stroke="#62748E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-            )}
-          </button>
+              <span className="font-medium text-[12px] text-[#62748E]">disability-friendly</span>
+            </div>
+            {/* Heading */}
+            <h1 className="font-bold text-[24px] leading-8 text-center text-[#155DFC]">
+              Update profile <span className="text-[#1D293D]">kamu, supaya </span>HR kamu melirik
+            </h1>
+            {/* Subtext */}
+            <p className="font-medium text-[14px] text-[#2B7FFF] text-center">
+              Ribuan lowongan{' '}
+              <span className="font-normal text-[#62748E]">dari perusahaan yang peduli aksesibilitas</span>
+            </p>
+          </div>
+
+          {/* FORM CARD */}
+          <div className="bg-white border border-[#F1F5F9] rounded-2xl shadow-sm p-6 flex flex-col gap-6">
+
+            {/* Profile Header — avatar + name */}
+            <div className="flex justify-between items-center pb-4 border-b border-[#F1F5F9]">
+              <div className="flex items-center gap-3">
+                {/* Avatar */}
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-lg font-bold shrink-0">
+                  {(user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h2 className="font-semibold text-[14px] text-[#1D293D]">
+                    {user?.user_metadata?.full_name || 'profile'}
+                  </h2>
+                  <p className="text-[12px] text-[#90A1B9]">{user?.email || 'm@example.com'}</p>
+                </div>
+              </div>
+              {/* Edit icon button */}
+              <button className="p-2 border border-[#E2E8F0] rounded-xl text-[#62748E] hover:text-blue-600 hover:border-blue-300 transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Daftar Perusahaan Section */}
+            <div className="flex flex-col gap-4">
+              <h3 className="font-bold text-[14px] text-[#314158]">Daftar Perusahaan</h3>
+
+              {/* Nama Lengkap & Email */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[12px] font-semibold text-[#45556C]">Nama Lengkap</label>
+                  <input type="text" value={namaLengkap} onChange={(e) => setNamaLengkap(e.target.value)} className={inputClass} placeholder="Nama lengkap kamu"/>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[12px] font-semibold text-[#45556C]">Email</label>
+                  <input type="email" value={emailField} onChange={(e) => setEmailField(e.target.value)} className={inputClass} placeholder="email@contoh.com"/>
+                </div>
+              </div>
+
+              {/* My About */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-semibold text-[#45556C]">My About</label>
+                <textarea value={myAbout} onChange={(e) => setMyAbout(e.target.value)} rows={4} className={`${inputClass} resize-none`} placeholder="Ceritakan sedikit tentang dirimu..."/>
+              </div>
+
+              {/* Alamat */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-semibold text-[#45556C]">Alamat</label>
+                <input type="text" value={alamat} onChange={(e) => setAlamat(e.target.value)} className={inputClass} placeholder="Kota, Provinsi"/>
+              </div>
+
+              {/* CV */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-semibold text-[#45556C]">CV (Masukan URL)</label>
+                <div className="relative">
+                  <input type="text" value={cvUrl} onChange={(e) => setCvUrl(e.target.value)} className={inputClass} placeholder="Upload CV"/>
+                  {!cvUrl && (
+                    <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 pointer-events-none text-[13px] text-[#90A1B9]">
+                      Upload CV
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Pengalaman */}
+            <div className="flex flex-col gap-3">
+              <h3 className="font-bold text-[14px] text-[#314158]">Pengalaman</h3>
+              {pengalaman.map((exp, idx) => (
+                <div key={idx} className="flex flex-col gap-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[12px] font-semibold text-[#45556C]">Posisi</label>
+                      <input type="text" value={exp.posisi} onChange={(e) => updatePengalaman(idx, 'posisi', e.target.value)} className={inputClass} placeholder="Posisi"/>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[12px] font-semibold text-[#45556C]">Nama Perusahaan/Komunitas</label>
+                      <input type="text" value={exp.perusahaan} onChange={(e) => updatePengalaman(idx, 'perusahaan', e.target.value)} className={inputClass} placeholder="Perusahaan"/>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[12px] font-semibold text-[#45556C]">Mulai kerja</label>
+                      <input type="text" value={exp.mulaiKerja} onChange={(e) => updatePengalaman(idx, 'mulaiKerja', e.target.value)} className={inputClass} placeholder="Bulan Tahun"/>
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1 flex flex-col gap-1">
+                        <label className="text-[12px] font-semibold text-[#45556C]">Akhir kerja</label>
+                        <input type="text" value={exp.akhirKerja} onChange={(e) => updatePengalaman(idx, 'akhirKerja', e.target.value)} className={inputClass} placeholder="Bulan Tahun / Sekarang"/>
+                      </div>
+                      {idx === pengalaman.length - 1 && <AddButton onClick={addPengalaman}/>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Sertifikasi */}
+            <div className="flex flex-col gap-3">
+              <h3 className="font-bold text-[14px] text-[#314158]">Sertifikasi (Masukan URL)</h3>
+              <div className="space-y-2">
+                {sertifikasi.map((s, idx) => (
+                  <input key={idx} type="text" value={s} onChange={(e) => updateSertifikasi(idx, e.target.value)} className={inputClass} placeholder="Upload Sertifikasi"/>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="text" value={sertifikasi[sertifikasi.length - 1] || ''} onChange={(e) => updateSertifikasi(sertifikasi.length - 1, e.target.value)} className={`${inputClass} flex-1`} placeholder="Upload Sertifikasi"/>
+                <AddButton onClick={addSertifikasi}/>
+              </div>
+            </div>
+
+            {/* Skills */}
+            <div className="flex flex-col gap-3">
+              <h3 className="font-bold text-[14px] text-[#314158]">Skills</h3>
+              {skills.map((skill, idx) => (
+                <input key={idx} type="text" value={skill} onChange={(e) => updateSkill(idx, e.target.value)} className={`${inputClass} border-b border-t-0 border-l-0 border-r-0 rounded-none px-1 py-2`} placeholder={`Skill ${idx + 1}`}/>
+              ))}
+              <div className="flex justify-end">
+                <AddButton onClick={addSkill}/>
+              </div>
+            </div>
+
+            {/* Pendidikan & Job Type */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-semibold text-[#45556C]">Pendidikan Terakhir</label>
+                <input type="text" value={pendidikanTerakhir} onChange={(e) => setPendidikanTerakhir(e.target.value)} className={inputClass} placeholder="S1, SMA, dll"/>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-semibold text-[#45556C]">Job Type</label>
+                <button
+                  type="button"
+                  onClick={() => setShowJobTypeModal(true)}
+                  className={`${inputClass} text-left flex justify-between items-center`}
+                >
+                  <span className={jobType ? 'text-[#1D293D]' : 'text-[#CAD5E2]'}>
+                    {jobType || 'Remote, Full-Time'}
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#90A1B9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Tahun Pendidikan & Disabilitas */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-semibold text-[#45556C]">Tahun Pendidikan</label>
+                <input type="text" value={tahunPendidikan} onChange={(e) => setTahunPendidikan(e.target.value)} className={inputClass} placeholder="2019 - 2023"/>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-semibold text-[#45556C]">Disabilitas</label>
+                <button
+                  type="button"
+                  onClick={() => setShowDisabilityModal(true)}
+                  className={`${inputClass} text-left flex justify-between items-center`}
+                >
+                  <span className={disabilitas ? 'text-[#1D293D]' : 'text-[#CAD5E2]'}>
+                    {disabilitas || 'Pilih tipe disabilitas'}
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#90A1B9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 px-8 py-3 bg-[#1447E6] text-white font-semibold text-[14px] rounded-xl shadow-[0_2px_4px_-2px_rgba(190,219,255,1),0_4px_6px_-1px_rgba(190,219,255,1)] hover:bg-[#1035c8] transition-colors disabled:opacity-70"
+              >
+                {saving ? 'Menyimpan...' : 'Ubah Profil'}
+                {!saving && (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M17 21V13H7V21M7 3V8H15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </main>
+
+      {/* Modals */}
+      {showJobTypeModal && (
+        <JobTypeModal
+          onClose={() => setShowJobTypeModal(false)}
+          selected={jobType}
+          onSave={(val) => setJobType(val)}
+        />
+      )}
+      {showDisabilityModal && (
+        <DisabilityModal
+          onClose={() => setShowDisabilityModal(false)}
+          selected={disabilitas}
+          onSave={(val) => setDisabilitas(val)}
+        />
+      )}
+
+      {/* Toast */}
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

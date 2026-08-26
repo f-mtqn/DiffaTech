@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import ChatSidebar from '../components/ChatSidebar';
 
 // Dummy chat data matching Figma design
 const chatItems = [
@@ -50,12 +51,16 @@ const ChatList = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-slate-50 font-['Inter']">
-      {/* Navbar */}
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 font-['Inter'] flex">
+      {/* Sidebar */}
+      <ChatSidebar />
 
-      {/* Main Content */}
-      <main className="pt-[68px] w-full max-w-[1024px] mx-auto px-6 py-8">
+      {/* Right content with Navbar */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        <Navbar />
+
+        {/* Main Content */}
+        <main className="pt-[68px] w-full max-w-[1024px] mx-auto px-6 py-8">
         {/* Banner */}
         <section className="w-full rounded-2xl p-8 flex justify-between items-center bg-gradient-to-br from-[#2D52D6] to-[#3B5EEA] mb-6">
           <div className="max-w-lg">
@@ -193,7 +198,8 @@ const ChatList = () => {
             </button>
           ))}
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
