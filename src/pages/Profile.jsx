@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabaseClient';
+import Navbar from '../components/Navbar';
+import ChatSidebar from '../components/ChatSidebar';
 
 // Modal: Job Type
 const JobTypeModal = ({ onClose, selected, onSave }) => {
@@ -152,8 +153,7 @@ const AddButton = ({ onClick }) => (
 );
 
 export default function Profile() {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Form state — always editable
   const [namaLengkap, setNamaLengkap] = useState('');
@@ -176,10 +176,24 @@ export default function Profile() {
   const [showJobTypeModal, setShowJobTypeModal] = useState(false);
   const [showDisabilityModal, setShowDisabilityModal] = useState(false);
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/login');
-  };
+  // Load existing profile data
+  useEffect(() => {
+    if (user) {
+      const meta = user.user_metadata || {};
+      setNamaLengkap(meta.full_name || '');
+      setEmailField(user.email || '');
+      setMyAbout(meta.about || '');
+      setAlamat(meta.address || '');
+      setCvUrl(meta.cv_url || '');
+      if (meta.pengalaman?.length) setPengalaman(meta.pengalaman);
+      if (meta.sertifikasi?.length) setSertifikasi(meta.sertifikasi);
+      if (meta.skills?.length) setSkills(meta.skills);
+      setPendidikanTerakhir(meta.pendidikan_terakhir || '');
+      setJobType(meta.job_type || '');
+      setTahunPendidikan(meta.tahun_pendidikan || '');
+      setDisabilitas(meta.disabilitas || '');
+    }
+  }, [user]);
 
   // Pengalaman handlers
   const addPengalaman = () =>
@@ -237,28 +251,17 @@ export default function Profile() {
     'w-full px-3 py-2.5 rounded-xl border border-[#E2E8F0] text-[13px] text-[#1D293D] bg-white outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all placeholder:text-[#CAD5E2]';
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-['Inter']">
-      {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-[#F1F5F9] z-40 flex items-center justify-between px-8">
-        <Link to="/dashboard" className="font-bold text-[18px] text-[#155DFC] tracking-tight">
-          diffaTech
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link to="/profile" className="font-semibold text-[14px] text-[#155DFC]">
-            {user?.email || 'User'}
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 rounded-lg border-2 border-blue-700 text-blue-700 font-semibold text-[14px]"
-          >
-            Keluar
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50 font-['Inter'] flex">
+      {/* Sidebar Platform on the left */}
+      <ChatSidebar />
 
-      {/* MAIN CONTENT */}
-      <main className="pt-[60px] w-full flex justify-center">
-        <div className="w-full max-w-[672px] px-6 py-10 flex flex-col gap-0">
+      {/* Right Content Area with Navbar */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        <Navbar />
+
+        {/* MAIN CONTENT */}
+        <main className="pt-[68px] w-full flex justify-center py-10 px-6">
+          <div className="w-full max-w-[720px] flex flex-col gap-0">
 
           {/* TOP BANNER — disability-friendly badge + heading */}
           <div className="flex flex-col items-center gap-3 mb-8">
@@ -308,9 +311,9 @@ export default function Profile() {
               </button>
             </div>
 
-            {/* Daftar Perusahaan Section */}
+            {/* Informasi Pribadi Section */}
             <div className="flex flex-col gap-4">
-              <h3 className="font-bold text-[14px] text-[#314158]">Daftar Perusahaan</h3>
+              <h3 className="font-bold text-[14px] text-[#314158]">Informasi Pribadi</h3>
 
               {/* Nama Lengkap & Email */}
               <div className="grid grid-cols-2 gap-4">
@@ -488,6 +491,7 @@ export default function Profile() {
 
       {/* Toast */}
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+      </div>
     </div>
   );
 }

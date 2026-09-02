@@ -1,17 +1,7 @@
 import React from 'react';
-import { 
-  Home, 
-  PlusCircle, 
-  Users, 
-  Bell, 
-  ChevronDown, 
-  User, 
-  MapPin, 
-  Clock, 
-  Briefcase, 
-  Search
-} from 'lucide-react';
+import { MapPin, Clock, Briefcase, Search, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import CompanySidebar from '../components/CompanySidebar';
 
 const CompanyJobPostings = () => {
   const navigate = useNavigate();
@@ -19,56 +9,7 @@ const CompanyJobPostings = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col fixed left-0 top-0">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-blue-600">diffaTech</h1>
-        </div>
-        <div className="px-4">
-          <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors mt-4">
-            <div className="w-10 h-10 bg-slate-800 rounded flex items-center justify-center shrink-0">
-              <Briefcase className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <h2 className="text-sm font-bold truncate text-gray-900">Acme Inc</h2>
-              <p className="text-xs text-gray-500 truncate">Enterprise</p>
-            </div>
-            <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
-          </div>
-        </div>
-        <div className="px-6 py-6 flex-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2">Platform</p>
-          <nav className="space-y-1">
-            <a href="/company-dashboard" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50">
-              <Home className="w-5 h-5 text-gray-500" />
-              Dashboard
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50">
-              <PlusCircle className="w-5 h-5 text-gray-500" />
-              Posting Lowongan Baru
-            </a>
-            <a href="/company-job-postings" className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-md bg-blue-50 text-blue-600">
-              <Users className="w-5 h-5 text-blue-600" />
-              Daftar Kandidat Saya
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50">
-              <Bell className="w-5 h-5 text-gray-500" />
-              Notifikasi
-            </a>
-          </nav>
-        </div>
-        <div className="p-4 border-t border-gray-200 mt-auto">
-          <div className="flex items-center gap-3 p-2 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-gray-600" />
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-bold truncate text-gray-900">shadcn</p>
-              <p className="text-xs text-gray-500 truncate">m@example.com</p>
-            </div>
-            <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
-          </div>
-        </div>
-      </aside>
+      <CompanySidebar />
 
       {/* Main Content */}
       <main className="flex-1 ml-64 p-8">

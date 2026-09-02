@@ -1,22 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import ChatSidebar from '../components/ChatSidebar';
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-
   const [filters, setFilters] = useState({
     twelveJuta: true,
     remote1: true,
     remote2: true,
   });
-
-  const handleLogout = () => {
-    signOut();
-    navigate('/login');
-  };
 
   const handleFilterChange = (filterName) => {
     setFilters((prev) => ({
@@ -52,36 +43,48 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 font-['Inter']">
-      {/* HEADER */}
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 font-['Inter'] flex">
+      {/* Sidebar Platform on the left */}
+      <ChatSidebar />
 
-      {/* MAIN CONTENT */}
-      <main className="pt-[68px] w-full max-w-[1024px] mx-auto px-6 py-8 flex flex-col gap-6">
-        {/* HERO BANNER */}
-        <section className="w-full rounded-2xl p-8 flex justify-between items-center bg-gradient-to-br from-[#2D52D6] to-[#3B5EEA]">
-          <div className="max-w-md">
-            <h1 className="font-bold text-[24px] leading-[33px] text-white">
-              Cari pekerjaan dengan mudah, tanpa halangan apa pun
-            </h1>
-            <p className="mt-1 font-normal text-[14px] text-[#BEDBFF]">
-              Ribuan lowongan dari perusahaan yang peduli aksesibilitas
-            </p>
-          </div>
-          <div className="relative w-[120px] h-[110px] opacity-90 text-white">
-            <svg
-              viewBox="0 0 120 110"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle cx="60" cy="55" r="45" stroke="currentColor" strokeWidth="8" />
-              <rect x="40" y="45" width="40" height="30" rx="4" stroke="currentColor" strokeWidth="6" />
-              <path d="M50 45V35C50 32.2386 52.2386 30 55 30H65C67.7614 30 70 32.2386 70 35V45" stroke="currentColor" strokeWidth="6" />
-              <circle cx="50" cy="85" r="15" stroke="currentColor" strokeWidth="6" fill="transparent" />
-              <circle cx="90" cy="85" r="15" stroke="currentColor" strokeWidth="6" fill="transparent" />
-            </svg>
-          </div>
-        </section>
+      {/* Right content area with Navbar */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* HEADER */}
+        <Navbar />
+
+        {/* MAIN CONTENT */}
+        <main className="pt-[68px] w-full max-w-[1024px] mx-auto px-6 py-8 flex flex-col gap-6">
+          {/* HERO BANNER */}
+          <section className="w-full rounded-2xl p-8 flex justify-between items-center bg-gradient-to-br from-[#2D52D6] to-[#3B5EEA]">
+            <div className="max-w-md">
+              <h1 className="font-bold text-[24px] leading-[33px] text-white">
+                Cari pekerjaan dengan mudah, tanpa halangan apa pun
+              </h1>
+              <p className="mt-1 font-normal text-[14px] text-[#BEDBFF]">
+                Meningkatkan kepercayaan kepada disabilitas
+              </p>
+            </div>
+            <div className="relative w-[120px] h-[110px] opacity-90 text-white/30">
+              {/* Wheelchair illustration matching Figma */}
+              <svg
+                viewBox="0 0 120 110"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="50" cy="15" r="10" stroke="currentColor" strokeWidth="3" />
+                <path d="M50 25V55" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M50 35L70 40" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M50 35L35 45" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M30 55H70" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M30 55V35" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <circle cx="45" cy="75" r="18" stroke="currentColor" strokeWidth="3" />
+                <circle cx="45" cy="75" r="4" stroke="currentColor" strokeWidth="2" />
+                <circle cx="75" cy="82" r="8" stroke="currentColor" strokeWidth="3" />
+                <path d="M70 55L75 74" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M60 55L65 68H55" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </section>
 
         {/* SEARCH BAR */}
         <section className="w-full h-[57px] bg-white border border-slate-200 shadow-sm rounded-2xl flex items-center">
@@ -137,86 +140,8 @@ const Dashboard = () => {
         </section>
 
         {/* CONTENT AREA */}
-        <div className="flex flex-row gap-6">
-          {/* Left: Filter Sidebar */}
-          <aside className="w-44 h-fit bg-white border border-slate-100 rounded-2xl p-4 flex flex-col gap-3">
-            <h2 className="font-semibold text-[14px] text-[#314158] mb-1">
-              Filter
-            </h2>
-
-            {/* Filter Items */}
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                className="hidden"
-                checked={filters.twelveJuta}
-                onChange={() => handleFilterChange('twelveJuta')}
-              />
-              <CheckboxIcon checked={filters.twelveJuta} />
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M12 2V22M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="font-normal text-[14px] text-[#45556C]">
-                12 juta
-              </span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                className="hidden"
-                checked={filters.remote1}
-                onChange={() => handleFilterChange('remote1')}
-              />
-              <CheckboxIcon checked={filters.remote1} />
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12H22" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="font-normal text-[14px] text-[#45556C]">
-                Remote
-              </span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                className="hidden"
-                checked={filters.remote2}
-                onChange={() => handleFilterChange('remote2')}
-              />
-              <CheckboxIcon checked={filters.remote2} />
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12H22" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="font-normal text-[14px] text-[#45556C]">
-                Remote
-              </span>
-            </label>
-          </aside>
-
-          {/* Right: Job Listings */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left: Job Listings */}
           <div className="flex-1 flex flex-col gap-4">
             {/* Job Card 1 */}
             <div className="bg-white border border-slate-100 shadow-sm rounded-2xl p-5 flex flex-row gap-4">
@@ -344,10 +269,89 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* Right: Filter Sidebar ("Snackbar") */}
+          <aside className="w-full lg:w-48 h-fit bg-white border border-slate-100 rounded-2xl p-4 flex flex-col gap-3 shrink-0">
+            <h2 className="font-semibold text-[14px] text-[#314158] mb-1">
+              Filter
+            </h2>
+
+            {/* Filter Items */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={filters.twelveJuta}
+                onChange={() => handleFilterChange('twelveJuta')}
+              />
+              <CheckboxIcon checked={filters.twelveJuta} />
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M12 2V22M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="font-normal text-[14px] text-[#45556C]">
+                12 juta
+              </span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={filters.remote1}
+                onChange={() => handleFilterChange('remote1')}
+              />
+              <CheckboxIcon checked={filters.remote1} />
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12H22" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="font-normal text-[14px] text-[#45556C]">
+                Remote
+              </span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={filters.remote2}
+                onChange={() => handleFilterChange('remote2')}
+              />
+              <CheckboxIcon checked={filters.remote2} />
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12H22" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="font-normal text-[14px] text-[#45556C]">
+                Remote
+              </span>
+            </label>
+          </aside>
         </div>
       </main>
     </div>
-  );
+  </div>
+);
 };
 
 export default Dashboard;

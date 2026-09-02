@@ -26,6 +26,7 @@ export default function RegisterJobSeeker() {
     try {
       setLoading(true);
       await signUp(email, password, { full_name: fullName, role: 'job_seeker' });
+      localStorage.setItem('diffatech_role', 'job_seeker');
       navigate('/login');
     } catch (err) {
       setError('Gagal mendaftar. Pastikan email belum digunakan.');

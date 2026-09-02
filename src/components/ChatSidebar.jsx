@@ -235,9 +235,17 @@ const ChatSidebar = ({ showUserProfile = false }) => {
         </div>
       </div>
 
-      {/* Footer - User Info */}
-      <div className="flex items-center gap-3 px-2 pt-4 border-t border-slate-100">
-        <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
+      {/* Footer - User Info & Profile Link */}
+      <Link
+        to="/profile"
+        className={`flex items-center gap-3 px-2 py-2.5 rounded-xl border-t border-slate-100 transition-colors ${
+          location.pathname === '/profile'
+            ? 'bg-[#EEF2FF] text-[#155DFC]'
+            : 'hover:bg-slate-50 text-[#1D293D]'
+        }`}
+        title="Buka Profil"
+      >
+        <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center shrink-0">
           <svg
             width="16"
             height="16"
@@ -262,8 +270,8 @@ const ChatSidebar = ({ showUserProfile = false }) => {
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[13px] text-[#1D293D] truncate">
-            {user?.user_metadata?.full_name || 'shadcn'}
+          <p className="font-semibold text-[13px] truncate">
+            {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'shadcn'}
           </p>
           <p className="font-normal text-[11px] text-[#62748E] truncate">
             {user?.email || 'm@example.com'}
@@ -284,7 +292,7 @@ const ChatSidebar = ({ showUserProfile = false }) => {
             strokeLinejoin="round"
           />
         </svg>
-      </div>
+      </Link>
     </aside>
   );
 };

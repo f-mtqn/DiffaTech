@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, role } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -28,30 +28,32 @@ const Navbar = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 h-[68px] bg-white border-b border-slate-100 shadow-sm z-50 flex items-center justify-between px-8 py-3.5">
-      <Link to="/dashboard" className="font-bold text-[18px] text-[#155DFC] tracking-tight">
+      <Link to={role === 'company' ? '/company-dashboard' : '/dashboard'} className="font-bold text-[18px] text-[#155DFC] tracking-tight">
         diffaTech
       </Link>
 
       <nav className="flex items-center gap-7">
         <Link to="#" className="font-medium text-[14px] text-[#45556C]">Pelatihan &amp; Skil</Link>
         <Link to="#" className="font-medium text-[14px] text-[#45556C]">Komunitas</Link>
-        <Link to="#" className="font-medium text-[14px] text-[#45556C]">Tentang Kami</Link>
+        <Link to="/about" className="font-medium text-[14px] text-[#45556C] hover:text-[#155DFC] transition-colors">Tentang Kami</Link>
       </nav>
 
       <div className="flex items-center gap-4">
         {user ? (
           <div className="flex items-center gap-4">
-            {/* Chat HRD link */}
-            <Link
-              to="/chat"
-              className="relative flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-[#45556C] hover:text-[#155DFC]"
-              title="Chat HRD"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="font-medium text-[14px]">Chat HRD</span>
-            </Link>
+            {/* Chat HRD link (only for job seeker) */}
+            {role !== 'company' && (
+              <Link
+                to="/chat"
+                className="relative flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors text-[#45556C] hover:text-[#155DFC]"
+                title="Chat HRD"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="font-medium text-[14px]">Chat HRD</span>
+              </Link>
+            )}
 
             {/* User avatar + email + chevron dropdown */}
             <div className="relative" ref={dropdownRef}>
@@ -83,7 +85,7 @@ const Navbar = () => {
               {dropdownOpen && (
                 <div className="absolute right-0 top-[calc(100%+6px)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 min-w-[160px] z-50">
                   <Link
-                    to="/profile"
+                    to={role === 'company' ? '/company-profile' : '/profile'}
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-[#314158] hover:bg-slate-50 transition-colors"
                   >

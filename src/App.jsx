@@ -15,6 +15,8 @@ import CompanyPostJob from './pages/CompanyPostJob';
 import ChatList from './pages/ChatList';
 import RoomChat from './pages/RoomChat';
 import Profile from './pages/Profile';
+import AboutPage from './pages/AboutPage';
+import CompanyProfile from './pages/CompanyProfile';
 
 function App() {
   return (
@@ -26,10 +28,11 @@ function App() {
           <Route path="/register" element={<RegisterChoice />} />
           <Route path="/register/pencari-kerja" element={<RegisterJobSeeker />} />
           <Route path="/register/perusahaan" element={<RegisterCompany />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="job_seeker">
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -37,7 +40,7 @@ function App() {
           <Route
             path="/company-dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyDashboard />
               </ProtectedRoute>
             }
@@ -45,7 +48,7 @@ function App() {
           <Route
             path="/company-post-job"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyPostJob />
               </ProtectedRoute>
             }
@@ -53,7 +56,7 @@ function App() {
           <Route
             path="/company-job-postings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyJobPostings />
               </ProtectedRoute>
             }
@@ -61,7 +64,7 @@ function App() {
           <Route
             path="/company-applicants"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyApplicants />
               </ProtectedRoute>
             }
@@ -69,7 +72,7 @@ function App() {
           <Route
             path="/company-candidate-detail"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyCandidateDetail />
               </ProtectedRoute>
             }
@@ -77,15 +80,23 @@ function App() {
           <Route
             path="/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="job_seeker">
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company-profile"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <CompanyProfile />
               </ProtectedRoute>
             }
           />
           <Route
             path="/chat"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="job_seeker">
                 <ChatList />
               </ProtectedRoute>
             }
@@ -93,7 +104,7 @@ function App() {
           <Route
             path="/chat/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="job_seeker">
                 <RoomChat />
               </ProtectedRoute>
             }

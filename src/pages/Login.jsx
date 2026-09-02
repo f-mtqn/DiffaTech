@@ -11,7 +11,7 @@ export default function Login() {
   const [activeTab, setActiveTab] = useState('pencari_kerja'); // 'pencari_kerja' | 'perusahaan'
   const [rememberMe, setRememberMe] = useState(false);
 
-  const { signIn } = useAuth();
+  const { signIn, setRole } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -39,7 +39,9 @@ export default function Login() {
       }
 
       // Successful login
-      if (activeTab === 'perusahaan') {
+      const chosenRole = activeTab === 'perusahaan' ? 'company' : 'job_seeker';
+      setRole(chosenRole);
+      if (chosenRole === 'company') {
         navigate('/company-dashboard');
       } else {
         navigate('/dashboard');
