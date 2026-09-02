@@ -17,6 +17,10 @@ import RoomChat from './pages/RoomChat';
 import Profile from './pages/Profile';
 import AboutPage from './pages/AboutPage';
 import CompanyProfile from './pages/CompanyProfile';
+import JobSeekerNotifications from './pages/JobSeekerNotifications';
+import CompanyNotifications from './pages/CompanyNotifications';
+import MyApplications from './pages/MyApplications';
+import JobDetail from './pages/JobDetail';
 
 function App() {
   return (
@@ -106,6 +110,54 @@ function App() {
             element={
               <ProtectedRoute allowedRole="job_seeker">
                 <RoomChat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <JobSeekerNotifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company-notifications"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <CompanyNotifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-applications"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <MyApplications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lamaran-saya"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <MyApplications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/job-detail/:id"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <JobDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/detail-pekerjaan/:id"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <JobDetail />
               </ProtectedRoute>
             }
           />

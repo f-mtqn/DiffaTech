@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabaseClient';
 import Navbar from '../components/Navbar';
 import ChatSidebar from '../components/ChatSidebar';
+import { LogOut } from 'lucide-react';
 
 // Modal: Job Type
 const JobTypeModal = ({ onClose, selected, onSave }) => {
@@ -153,7 +155,13 @@ const AddButton = ({ onClick }) => (
 );
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   // Form state — always editable
   const [namaLengkap, setNamaLengkap] = useState('');
@@ -302,12 +310,15 @@ export default function Profile() {
                   <p className="text-[12px] text-[#90A1B9]">{user?.email || 'm@example.com'}</p>
                 </div>
               </div>
-              {/* Edit icon button */}
-              <button className="p-2 border border-[#E2E8F0] rounded-xl text-[#62748E] hover:text-blue-600 hover:border-blue-300 transition-colors">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+              {/* Actions: Logout */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition-colors cursor-pointer"
+                title="Keluar dari akun pencari kerja"
+              >
+                <LogOut className="w-3.5 h-3.5 text-red-500" />
+                <span>Keluar Akun</span>
               </button>
             </div>
 
@@ -453,12 +464,12 @@ export default function Profile() {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-4 border-t border-[#F1F5F9]">
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-8 py-3 bg-[#1447E6] text-white font-semibold text-[14px] rounded-xl shadow-[0_2px_4px_-2px_rgba(190,219,255,1),0_4px_6px_-1px_rgba(190,219,255,1)] hover:bg-[#1035c8] transition-colors disabled:opacity-70"
+                className="flex items-center gap-2 px-8 py-3 bg-[#1447E6] text-white font-semibold text-[14px] rounded-xl shadow-[0_2px_4px_-2px_rgba(190,219,255,1),0_4px_6px_-1px_rgba(190,219,255,1)] hover:bg-[#1035c8] transition-colors disabled:opacity-70 cursor-pointer"
               >
                 {saving ? 'Menyimpan...' : 'Ubah Profil'}
                 {!saving && (
