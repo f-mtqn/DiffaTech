@@ -151,6 +151,8 @@ const AddButton = ({ onClick }) => (
   </button>
 );
 
+import { loadJobSeekerProfile, saveJobSeekerProfile, saveExperiences, saveCertifications, saveSkills } from '../utils/profileApi';
+
 export default function Profile() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -170,11 +172,48 @@ export default function Profile() {
   const [jobType, setJobType] = useState('');
   const [tahunPendidikan, setTahunPendidikan] = useState('');
   const [disabilitas, setDisabilitas] = useState('');
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
   const [showJobTypeModal, setShowJobTypeModal] = useState(false);
   const [showDisabilityModal, setShowDisabilityModal] = useState(false);
+
+  // Load data profil dari Supabase saat halaman dibuka
+  useEffect(() => {
+    if (!user?.id) return;
+    setLoadingProfile(true);
+    loadJobSeekerProfile(user.id)
+      .then(({ profile, jsProfile, experiences, certifications, skills: userSkills }) => {
+        if (profile) setNamaLengkap(profile.full_name || '');
+        setEmailField(user.email || '');
+        if (jsProfile) {
+          setMyAbout(jsProfile.about || '');
+          setAlamat(jsProfile.address || '');
+          setCvUrl(jsProfile.cv_url || '');
+          setPendidikanTerakhir(jsProfile.last_education || '');
+          setTahunPendidikan(jsProfile.education_year || '');
+          setJobType((jsProfile.job_type_preferences || []).join(', '));
+          setDisabilitas((jsProfile.disability_types || []).join(', '));
+        }
+        if (experiences.length > 0) {
+          setPengalaman(experiences.map(e => ({
+            posisi: e.position || '',
+            perusahaan: e.company_name || '',
+            mulaiKerja: e.start_date || '',
+            akhirKerja: e.end_date || '',
+          })));
+        }
+        if (certifications.length > 0) {
+          setSertifikasi(certifications.map(c => c.cert_url || ''));
+        }
+        if (userSkills.length > 0) {
+          setSkills(userSkills.map(s => s.skill_name || ''));
+        }
+      })
+      .catch(err => console.error('Gagal load profil:', err))
+      .finally(() => setLoadingProfile(false));
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await signOut();
@@ -207,26 +246,25 @@ export default function Profile() {
   };
 
   const handleSave = async () => {
+    if (!user?.id) return;
     setSaving(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          full_name: namaLengkap,
-          about: myAbout,
-          address: alamat,
-          cv_url: cvUrl,
-          pengalaman,
-          sertifikasi,
-          skills,
-          pendidikan_terakhir: pendidikanTerakhir,
-          job_type: jobType,
-          tahun_pendidikan: tahunPendidikan,
-          disabilitas,
-        },
+      await saveJobSeekerProfile(user.id, {
+        namaLengkap,
+        about: myAbout,
+        address: alamat,
+        cvUrl,
+        disabilityTypes: disabilitas ? disabilitas.split(', ').filter(Boolean) : [],
+        jobTypePreferences: jobType ? jobType.split(', ').filter(Boolean) : [],
+        lastEducation: pendidikanTerakhir,
+        educationYear: tahunPendidikan,
       });
-      if (error) throw error;
+      await saveExperiences(user.id, pengalaman);
+      await saveCertifications(user.id, sertifikasi);
+      await saveSkills(user.id, skills);
       setToast('Profil berhasil disimpan!');
     } catch (err) {
+      console.error('Gagal simpan:', err);
       setToast('Gagal menyimpan. Coba lagi.');
     } finally {
       setSaving(false);
