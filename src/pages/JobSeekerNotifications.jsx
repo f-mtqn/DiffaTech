@@ -1,138 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ChatSidebar from '../components/ChatSidebar';
-import { 
-  Bell, 
-  Briefcase, 
-  MessageSquare, 
-  Sparkles, 
-  CheckCircle2, 
-  Calendar, 
-  CheckCheck, 
-  Trash2,
-  ChevronRight
+import { useAuth } from '../context/AuthContext';
+import {
+  fetchNotifications, markNotificationRead,
+  markAllNotificationsRead, deleteNotification, timeAgo
+} from '../utils/api';
+import {
+  Bell, Briefcase, MessageSquare, Sparkles, CheckCircle2,
+  Calendar, CheckCheck, Trash2, ChevronRight
 } from 'lucide-react';
 
-const initialNotifications = [
-  {
-    id: 1,
-    title: 'Undangan Wawancara: UI Designer',
-    message: 'Selamat! PT Inklusif Tech Indonesia telah meninjau profil Anda dan mengundang Anda ke tahap wawancara online ramah disabilitas (disediakan live-captioning & teks pendamping).',
-    time: '10 menit yang lalu',
-    category: 'lamaran',
-    read: false,
-    actionText: 'Buka Pesan HRD',
-    actionLink: '/chat',
-    icon: Calendar,
-    iconColor: 'bg-emerald-100 text-emerald-600',
-  },
-  {
-    id: 2,
-    title: 'Pesan Baru dari HRD Tokopedia',
-    message: 'Halo, berkas portofolio Figma Anda sangat memuaskan. Apakah bersedia mendiskusikan opsi kerja remote (WFH) bersama tim kami?',
-    time: '1 jam yang lalu',
-    category: 'pesan',
-    read: false,
-    actionText: 'Balas Pesan',
-    actionLink: '/chat',
-    icon: MessageSquare,
-    iconColor: 'bg-blue-100 text-blue-600',
-  },
-  {
-    id: 3,
-    title: 'Rekomendasi Lowongan Baru yang Cocok',
-    message: 'Ada 2 lowongan baru yang sesuai keahlian Anda: Frontend Developer di Bukalapak (Full-Time Remote, ramah Disleksia & Tunadaksa).',
-    time: '3 jam yang lalu',
-    category: 'sistem',
-    read: false,
-    actionText: 'Lihat Lowongan',
-    actionLink: '/dashboard',
-    icon: Sparkles,
-    iconColor: 'bg-amber-100 text-amber-600',
-  },
-  {
-    id: 4,
-    title: 'Lamaran Berhasil Terkirim ke Blibli',
-    message: 'Lamaran Anda untuk posisi Quality Assurance Specialist telah diterima oleh sistem rekrutmen Blibli dan sedang dalam tahap peninjauan awal.',
-    time: 'Kemarin, 14:20 WIB',
-    category: 'lamaran',
-    read: true,
-    actionText: 'Lihat Lowongan',
-    actionLink: '/dashboard',
-    icon: Briefcase,
-    iconColor: 'bg-purple-100 text-purple-600',
-  },
-  {
-    id: 5,
-    title: 'Profil Anda Siap Dilirik Perusahaan',
-    message: 'Profil karier Anda telah dilengkapi dengan data keahlian dan preferensi disabilitas. Akun Anda kini tampil di daftar teratas rekomendasi kandidat bagi perusahaan mitra.',
-    time: '2 hari yang lalu',
-    category: 'sistem',
-    read: true,
-    actionText: 'Kelola Profil',
-    actionLink: '/profile',
-    icon: CheckCircle2,
-    iconColor: 'bg-blue-100 text-blue-600',
-  },
-  {
-    id: 6,
-    title: 'Webinar Aksesibilitas Digital Dibuka',
-    message: 'Pendaftaran workshop gratis "Membangun Antarmuka Aksesibel (WCAG 2.1) untuk Profesional Disabilitas" dibuka khusus anggota komunitas DiffaTech.',
-    time: '3 hari yang lalu',
-    category: 'sistem',
-    read: true,
-    actionText: 'Pelajari Lebih Lanjut',
-    actionLink: '/about',
-    icon: Sparkles,
-    iconColor: 'bg-indigo-100 text-indigo-600',
-  },
-];
+const getCategoryStyle = (category, type) => {
+  const key = category || type || 'info';
+  const map = {
+    lamaran: { icon: Briefcase, color: 'bg-purple-100 text-purple-600' },
+    pesan: { icon: MessageSquare, color: 'bg-blue-100 text-blue-600' },
+    sistem: { icon: Sparkles, color: 'bg-amber-100 text-amber-600' },
+    success: { icon: CheckCircle2, color: 'bg-emerald-100 text-emerald-600' },
+    warning: { icon: Calendar, color: 'bg-orange-100 text-orange-600' },
+    info: { icon: Bell, color: 'bg-blue-100 text-blue-600' },
+  };
+  return map[key] || map.info;
+};
 
 export default function JobSeekerNotifications() {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [filterTab, setFilterTab] = useState('semua'); // 'semua' | 'unread' | 'lamaran' | 'pesan' | 'sistem'
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filterTab, setFilterTab] = useState('semua');
 
-  // Mark single as read
-  const toggleRead = (id) => {
+  useEffect(() => {
+    if (user) loadNotifications();
+  }, [user]);
+
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchNotifications(user.id);
+      setNotifications(data);
+    } catch (err) {
+      console.error('Error loading notifications:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleRead = async (id) => {
+    await markNotificationRead(id);
     setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, read: true } : item))
+      prev.map((item) => (item.id === id ? { ...item, is_read: true } : item))
     );
   };
 
-  // Mark all as read
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+  const handleMarkAllRead = async () => {
+    await markAllNotificationsRead(user.id);
+    setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })));
   };
 
-  // Delete notification
-  const deleteNotification = (id, e) => {
+  const handleDelete = async (id, e) => {
     e.stopPropagation();
+    await deleteNotification(id);
     setNotifications((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Filter logic
   const filteredNotifications = notifications.filter((item) => {
-    if (filterTab === 'unread') return !item.read;
+    if (filterTab === 'unread') return !item.is_read;
     if (filterTab === 'lamaran') return item.category === 'lamaran';
     if (filterTab === 'pesan') return item.category === 'pesan';
     if (filterTab === 'sistem') return item.category === 'sistem';
     return true;
   });
 
-  const unreadCount = notifications.filter((item) => !item.read).length;
+  const unreadCount = notifications.filter((item) => !item.is_read).length;
 
   return (
     <div className="min-h-screen bg-slate-50 font-['Inter'] flex">
-      {/* Sidebar Platform on the left */}
       <ChatSidebar />
-
-      {/* Right Content Area with Navbar */}
       <div className="flex-1 flex flex-col min-h-screen">
         <Navbar />
-
-        {/* Main Content */}
         <main className="pt-[68px] w-full max-w-[1024px] mx-auto px-6 py-8 flex flex-col gap-6">
           {/* Header Banner */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -142,9 +90,7 @@ export default function JobSeekerNotifications() {
               </div>
               <div>
                 <div className="flex items-center gap-2.5">
-                  <h1 className="text-xl sm:text-2xl font-bold text-[#1D293D]">
-                    Pusat Notifikasi
-                  </h1>
+                  <h1 className="text-xl sm:text-2xl font-bold text-[#1D293D]">Pusat Notifikasi</h1>
                   {unreadCount > 0 && (
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-[#155DFC]">
                       {unreadCount} Baru
@@ -156,10 +102,9 @@ export default function JobSeekerNotifications() {
                 </p>
               </div>
             </div>
-
             {unreadCount > 0 && (
               <button
-                onClick={markAllAsRead}
+                onClick={handleMarkAllRead}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-[#155DFC] bg-blue-50 hover:bg-blue-100 transition-colors shrink-0 self-start sm:self-auto cursor-pointer"
               >
                 <CheckCheck className="w-4 h-4" />
@@ -193,73 +138,61 @@ export default function JobSeekerNotifications() {
 
           {/* Notifications List */}
           <div className="flex flex-col gap-3">
-            {filteredNotifications.length > 0 ? (
+            {loading ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse flex gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-slate-200 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-slate-200 rounded w-1/3" />
+                    <div className="h-3 bg-slate-100 rounded w-full" />
+                    <div className="h-3 bg-slate-100 rounded w-2/3" />
+                  </div>
+                </div>
+              ))
+            ) : filteredNotifications.length > 0 ? (
               filteredNotifications.map((notif) => {
-                const IconComponent = notif.icon;
+                const { icon: IconComponent, color } = getCategoryStyle(notif.category, notif.type);
                 return (
                   <div
                     key={notif.id}
-                    onClick={() => toggleRead(notif.id)}
+                    onClick={() => handleToggleRead(notif.id)}
                     className={`rounded-2xl p-5 border transition-all cursor-pointer flex items-start gap-4 ${
-                      notif.read
+                      notif.is_read
                         ? 'bg-white border-slate-100 hover:border-slate-200'
                         : 'bg-white border-blue-200 shadow-sm relative overflow-hidden'
                     }`}
                   >
-                    {/* Unread Left Border Indicator */}
-                    {!notif.read && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#155DFC]"></div>
+                    {!notif.is_read && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#155DFC]" />
                     )}
-
-                    {/* Notification Category Icon */}
-                    <div
-                      className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${notif.iconColor}`}
-                    >
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
                       <IconComponent className="w-5 h-5" />
                     </div>
-
-                    {/* Notification Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <div className="flex items-center gap-2">
-                          <h3
-                            className={`text-sm sm:text-base truncate ${
-                              notif.read ? 'font-semibold text-[#1D293D]' : 'font-bold text-[#0F172B]'
-                            }`}
-                          >
+                          <h3 className={`text-sm sm:text-base truncate ${notif.is_read ? 'font-semibold text-[#1D293D]' : 'font-bold text-[#0F172B]'}`}>
                             {notif.title}
                           </h3>
-                          {!notif.read && (
-                            <span className="w-2 h-2 rounded-full bg-[#155DFC] shrink-0"></span>
+                          {!notif.is_read && (
+                            <span className="w-2 h-2 rounded-full bg-[#155DFC] shrink-0" />
                           )}
                         </div>
-                        <span className="text-xs text-[#90A1B9] shrink-0">{notif.time}</span>
+                        <span className="text-xs text-[#90A1B9] shrink-0">{timeAgo(notif.created_at)}</span>
                       </div>
-
-                      <p className="text-xs sm:text-sm text-[#62748E] leading-relaxed mb-3">
-                        {notif.message}
-                      </p>
-
-                      {/* Action Button & Delete */}
+                      <p className="text-xs sm:text-sm text-[#62748E] leading-relaxed mb-3">{notif.message}</p>
                       <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-50">
-                        {notif.actionLink ? (
+                        {notif.action_link ? (
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(notif.actionLink);
-                            }}
+                            onClick={(e) => { e.stopPropagation(); navigate(notif.action_link); }}
                             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#155DFC] hover:underline cursor-pointer"
                           >
-                            {notif.actionText}
-                            <ChevronRight className="w-3.5 h-3.5" />
+                            {notif.action_text || 'Lihat Detail'} <ChevronRight className="w-3.5 h-3.5" />
                           </button>
-                        ) : (
-                          <span></span>
-                        )}
-
+                        ) : <span />}
                         <button
-                          onClick={(e) => deleteNotification(notif.id, e)}
-                          className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                          onClick={(e) => handleDelete(notif.id, e)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                           title="Hapus notifikasi"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -270,14 +203,11 @@ export default function JobSeekerNotifications() {
                 );
               })
             ) : (
-              /* Empty State */
               <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center flex flex-col items-center justify-center">
                 <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
                   <Bell className="w-8 h-8" />
                 </div>
-                <h3 className="font-bold text-base text-[#1D293D] mb-1">
-                  Tidak ada notifikasi
-                </h3>
+                <h3 className="font-bold text-base text-[#1D293D] mb-1">Tidak ada notifikasi</h3>
                 <p className="text-xs sm:text-sm text-[#62748E] max-w-sm">
                   {filterTab === 'unread'
                     ? 'Semua notifikasi Anda telah ditandai sebagai dibaca.'

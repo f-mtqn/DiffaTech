@@ -1,150 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanySidebar from '../components/CompanySidebar';
-import { 
-  Bell, 
-  Users, 
-  Briefcase, 
-  ShieldCheck, 
-  Calendar, 
-  CheckCheck, 
-  Trash2,
-  ChevronRight,
-  Sparkles
+import { useAuth } from '../context/AuthContext';
+import {
+  fetchNotifications, markNotificationRead,
+  markAllNotificationsRead, deleteNotification, timeAgo
+} from '../utils/api';
+import {
+  Bell, Users, Briefcase, ShieldCheck, Calendar,
+  CheckCheck, Trash2, ChevronRight, Sparkles
 } from 'lucide-react';
 
-const initialCompanyNotifications = [
-  {
-    id: 1,
-    title: 'Pelamar Baru: Hanif Almansyah',
-    message: 'Kandidat Hanif Almansyah telah melamar untuk posisi "UI Designer". Memiliki pengalaman 12 tahun, menguasai Figma & Design System (Disabilitas: Tunarungu).',
-    time: '15 menit yang lalu',
-    category: 'pelamar',
-    read: false,
-    actionText: 'Tinjau Profil Kandidat',
-    actionLink: '/company-candidate-detail',
-    icon: Users,
-    iconColor: 'bg-blue-100 text-blue-600',
-  },
-  {
-    id: 2,
-    title: 'Pelamar Baru: Michele',
-    message: 'Michele telah melamar untuk posisi "Frontend Developer". Menguasai React, Tailwind CSS, serta standar aksesibilitas web WCAG (Disabilitas: Tunadaksa).',
-    time: '2 jam yang lalu',
-    category: 'pelamar',
-    read: false,
-    actionText: 'Lihat Daftar Pelamar',
-    actionLink: '/company-applicants',
-    icon: Users,
-    iconColor: 'bg-emerald-100 text-emerald-600',
-  },
-  {
-    id: 3,
-    title: 'Lowongan "UI Designer" Mencapai 150+ Dilihat',
-    message: 'Postingan lowongan pekerjaan Anda mendapatkan respon tinggi dari komunitas profesional disabilitas minggu ini.',
-    time: '5 jam yang lalu',
-    category: 'lowongan',
-    read: false,
-    actionText: 'Kelola Postingan Lowongan',
-    actionLink: '/company-job-postings',
-    icon: Briefcase,
-    iconColor: 'bg-purple-100 text-purple-600',
-  },
-  {
-    id: 4,
-    title: 'Pengingat: Jadwal Interview Online Besok',
-    message: 'Anda memiliki agenda wawancara online dengan kandidat Hanif Almansyah besok pukul 10:00 WIB. Mohon pastikan link Google Meet ramah caption telah aktif.',
-    time: 'Kemarin, 16:45 WIB',
-    category: 'pelamar',
-    read: true,
-    actionText: 'Detail Pelamar',
-    actionLink: '/company-candidate-detail',
-    icon: Calendar,
-    iconColor: 'bg-amber-100 text-amber-600',
-  },
-  {
-    id: 5,
-    title: 'Lencana Perusahaan Inklusif Terverifikasi',
-    message: 'Selamat! Akun perusahaan Anda telah memenuhi 100% kriteria Ramah Disabilitas DiffaTech dan kini berhak memasang badge verifikasi resmi di setiap postingan lowongan.',
-    time: '3 hari yang lalu',
-    category: 'sistem',
-    read: true,
-    actionText: 'Cek Profil Perusahaan',
-    actionLink: '/company-profile',
-    icon: ShieldCheck,
-    iconColor: 'bg-emerald-100 text-emerald-600',
-  },
-  {
-    id: 6,
-    title: 'Tips Perekrutan Talenta Disabilitas',
-    message: 'Pelajari panduan praktis menyediakan lingkungan kerja adaptif dan fasilitas teknologi penunjang bagi rekan kerja disabilitas dari modul HR DiffaTech.',
-    time: '5 hari yang lalu',
-    category: 'sistem',
-    read: true,
-    actionText: 'Baca Panduan',
-    actionLink: '/about',
-    icon: Sparkles,
-    iconColor: 'bg-indigo-100 text-indigo-600',
-  },
-];
+const getCategoryIcon = (type) => {
+  const map = {
+    pelamar: { icon: Users, color: 'bg-blue-100 text-blue-600' },
+    lowongan: { icon: Briefcase, color: 'bg-purple-100 text-purple-600' },
+    sistem: { icon: ShieldCheck, color: 'bg-emerald-100 text-emerald-600' },
+    warning: { icon: Calendar, color: 'bg-amber-100 text-amber-600' },
+    success: { icon: Sparkles, color: 'bg-emerald-100 text-emerald-600' },
+    info: { icon: Bell, color: 'bg-blue-100 text-blue-600' },
+  };
+  return map[type] || { icon: Bell, color: 'bg-gray-100 text-gray-500' };
+};
 
 export default function CompanyNotifications() {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(initialCompanyNotifications);
-  const [filterTab, setFilterTab] = useState('semua'); // 'semua' | 'unread' | 'pelamar' | 'lowongan' | 'sistem'
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filterTab, setFilterTab] = useState('semua');
 
-  // Mark single as read
-  const toggleRead = (id) => {
+  useEffect(() => {
+    if (user) loadNotifications();
+  }, [user]);
+
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchNotifications(user.id);
+      setNotifications(data);
+    } catch (err) {
+      console.error('Error loading notifications:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleRead = async (id) => {
+    await markNotificationRead(id);
     setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, read: true } : item))
+      prev.map((item) => (item.id === id ? { ...item, is_read: true } : item))
     );
   };
 
-  // Mark all as read
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+  const handleMarkAllRead = async () => {
+    await markAllNotificationsRead(user.id);
+    setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })));
   };
 
-  // Delete notification
-  const deleteNotification = (id, e) => {
+  const handleDelete = async (id, e) => {
     e.stopPropagation();
+    await deleteNotification(id);
     setNotifications((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Filter logic
   const filteredNotifications = notifications.filter((item) => {
-    if (filterTab === 'unread') return !item.read;
+    if (filterTab === 'unread') return !item.is_read;
     if (filterTab === 'pelamar') return item.category === 'pelamar';
     if (filterTab === 'lowongan') return item.category === 'lowongan';
     if (filterTab === 'sistem') return item.category === 'sistem';
     return true;
   });
 
-  const unreadCount = notifications.filter((item) => !item.read).length;
+  const unreadCount = notifications.filter((item) => !item.is_read).length;
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
       <CompanySidebar />
-
       <main className="flex-1 ml-64 p-6 lg:p-10 max-w-[1300px]">
-        {/* Header Section */}
+        {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-gray-200">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-2">
               <Bell className="w-3.5 h-3.5" />
               Notifikasi Perusahaan
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">
-              Pusat Pemberitahuan
-            </h1>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">Pusat Pemberitahuan</h1>
             <p className="text-sm text-gray-500 mt-1">
               Pantau lamaran baru dari talenta disabilitas, pembaruan lowongan kerja, dan jadwal wawancara.
             </p>
           </div>
-
           {unreadCount > 0 && (
             <button
-              onClick={markAllAsRead}
+              onClick={handleMarkAllRead}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-semibold text-xs shadow-sm transition-colors cursor-pointer self-start md:self-auto"
             >
               <CheckCheck className="w-4 h-4 text-blue-600" />
@@ -178,74 +126,60 @@ export default function CompanyNotifications() {
 
         {/* Notifications List */}
         <div className="flex flex-col gap-3">
-          {filteredNotifications.length > 0 ? (
+          {loading ? (
+            [1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 animate-pulse flex gap-4">
+                <div className="w-11 h-11 rounded-xl bg-slate-200 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-slate-200 rounded w-1/3" />
+                  <div className="h-3 bg-slate-100 rounded w-full" />
+                  <div className="h-3 bg-slate-100 rounded w-2/3" />
+                </div>
+              </div>
+            ))
+          ) : filteredNotifications.length > 0 ? (
             filteredNotifications.map((notif) => {
-              const IconComponent = notif.icon;
+              const { icon: IconComponent, color } = getCategoryIcon(notif.category || notif.type);
               return (
                 <div
                   key={notif.id}
-                  onClick={() => toggleRead(notif.id)}
+                  onClick={() => handleToggleRead(notif.id)}
                   className={`rounded-2xl p-5 border transition-all cursor-pointer flex items-start gap-4 ${
-                    notif.read
+                    notif.is_read
                       ? 'bg-white border-gray-100 hover:border-gray-200'
                       : 'bg-white border-blue-200 shadow-sm relative overflow-hidden'
                   }`}
                 >
-                  {/* Unread Left Border Indicator */}
-                  {!notif.read && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-600"></div>
+                  {!notif.is_read && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-600" />
                   )}
-
-                  {/* Icon */}
-                  <div
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${notif.iconColor}`}
-                  >
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
                     <IconComponent className="w-5 h-5" />
                   </div>
-
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2">
-                        <h3
-                          className={`text-sm sm:text-base truncate ${
-                            notif.read ? 'font-semibold text-gray-800' : 'font-bold text-gray-900'
-                          }`}
-                        >
+                        <h3 className={`text-sm sm:text-base truncate ${notif.is_read ? 'font-semibold text-gray-800' : 'font-bold text-gray-900'}`}>
                           {notif.title}
                         </h3>
-                        {!notif.read && (
-                          <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
-                        )}
+                        {!notif.is_read && <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />}
                       </div>
-                      <span className="text-xs text-gray-400 shrink-0">{notif.time}</span>
+                      <span className="text-xs text-gray-400 shrink-0">{timeAgo(notif.created_at)}</span>
                     </div>
-
-                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-3">
-                      {notif.message}
-                    </p>
-
-                    {/* Action & Delete */}
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-3">{notif.message}</p>
                     <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-50">
-                      {notif.actionLink ? (
+                      {notif.action_link ? (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(notif.actionLink);
-                          }}
+                          onClick={(e) => { e.stopPropagation(); navigate(notif.action_link); }}
                           className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline cursor-pointer"
                         >
-                          {notif.actionText}
-                          <ChevronRight className="w-3.5 h-3.5" />
+                          {notif.action_text || 'Lihat Detail'} <ChevronRight className="w-3.5 h-3.5" />
                         </button>
-                      ) : (
-                        <span></span>
-                      )}
-
+                      ) : <span />}
                       <button
-                        onClick={(e) => deleteNotification(notif.id, e)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
-                        title="Hapus pemberitahuan"
+                        onClick={(e) => handleDelete(notif.id, e)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                        title="Hapus"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -255,18 +189,13 @@ export default function CompanyNotifications() {
               );
             })
           ) : (
-            /* Empty State */
             <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center flex flex-col items-center justify-center">
               <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-4">
                 <Bell className="w-8 h-8" />
               </div>
-              <h3 className="font-bold text-base text-gray-900 mb-1">
-                Tidak ada pemberitahuan
-              </h3>
+              <h3 className="font-bold text-base text-gray-900 mb-1">Tidak ada pemberitahuan</h3>
               <p className="text-xs sm:text-sm text-gray-500 max-w-sm">
-                {filterTab === 'unread'
-                  ? 'Semua notifikasi perusahaan telah dibaca.'
-                  : 'Belum ada notifikasi baru untuk kategori ini.'}
+                {filterTab === 'unread' ? 'Semua notifikasi perusahaan telah dibaca.' : 'Belum ada notifikasi baru untuk kategori ini.'}
               </p>
             </div>
           )}

@@ -1,173 +1,181 @@
-import React from 'react';
-import { MapPin, Clock, Briefcase, Search, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanySidebar from '../components/CompanySidebar';
+import { useAuth } from '../context/AuthContext';
+import { fetchCompanyJobs, deactivateJob, timeAgo } from '../utils/api';
+import { Briefcase, Plus, Search, MapPin, Eye, Pencil, Trash2, CheckCircle2 } from 'lucide-react';
 
-const CompanyJobPostings = () => {
+export default function CompanyJobPostings() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (user) loadJobs();
+  }, [user]);
+
+  const loadJobs = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchCompanyJobs(user.id);
+      setJobs(data);
+    } catch (err) {
+      console.error('Error loading company jobs:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeactivate = async (jobId) => {
+    if (!window.confirm('Yakin ingin menonaktifkan lowongan ini?')) return;
+    try {
+      await deactivateJob(jobId);
+      setJobs((prev) => prev.map((j) => j.id === jobId ? { ...j, is_active: false } : j));
+    } catch (err) {
+      alert('Gagal menonaktifkan lowongan.');
+    }
+  };
+
+  const filteredJobs = jobs.filter(
+    (j) =>
+      j.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      j.location?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const companyMeta = user?.user_metadata || {};
+  const logoLetter = (companyMeta.company_name || 'P').charAt(0).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
       <CompanySidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
-        {/* Banner */}
-        <div className="bg-blue-600 rounded-2xl p-8 mb-8 flex justify-between items-center text-white relative overflow-hidden">
-          <div className="relative z-10 max-w-xl">
-            <h2 className="text-3xl font-bold mb-2">Siap memberi banyak lowongan pekerjaan</h2>
-            <p className="text-blue-100 text-base">Meningkatkan kepercayaan kepada disabilitas</p>
+      <main className="flex-1 ml-64 p-6 lg:p-10 max-w-[1500px]">
+        {/* Header */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-gray-200">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-2">
+              <Briefcase className="w-3.5 h-3.5" />
+              Manajemen Lowongan
+            </div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">Postingan Lowongan</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {jobs.length} total lowongan · {jobs.filter((j) => j.is_active).length} aktif
+            </p>
           </div>
-          <div className="relative z-10 hidden md:block">
-            {/* Outline SVG Illustration */}
-            <svg width="120" height="120" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white opacity-90">
-              <circle cx="50" cy="20" r="8" />
-              <path d="M50 28 L50 60" />
-              <path d="M30 45 L50 45" />
-              <circle cx="30" cy="80" r="10" />
-              <circle cx="70" cy="80" r="10" />
-              <path d="M20 80 L80 80" />
-              <path d="M40 80 L40 60 L60 60 L60 80" />
-              <path d="M10 65 L30 65" />
-              <path d="M10 70 L25 70" />
-            </svg>
-          </div>
+          <button
+            onClick={() => navigate('/company-post-job')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm shadow-sm transition-colors cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Buat Postingan Baru
+          </button>
         </div>
 
-        {/* Job Postings Section */}
-        <div>
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-gray-800">Posting Lamaran Kerja</h3>
-            <div className="flex items-center gap-4">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                Buat Postingan Baru
-              </button>
-              <div className="flex gap-2">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
-                    placeholder="cari postingan"
-                  />
-                </div>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                  Cari
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* Job Card 1 */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <div className="flex gap-5">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 border border-gray-200"></div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-900">UI Designer</h4>
-                  <p className="text-sm font-medium text-blue-600 mb-3">Batas Pendaftaran : 28 Oktober 2025</p>
-                  
-                  <div className="flex flex-wrap gap-5 text-xs font-medium text-gray-500 mb-4">
-                    <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-gray-400"/> Jakarta Selatan</span>
-                    <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-gray-400"/> 12 juta</span>
-                    <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-gray-400"/> Remote</span>
-                    <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-gray-400"/> Remote</span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 mb-6 max-w-4xl">
-                    Kami mencari UI Designer berbakat yang mampu merancang antarmuka inklusif dan aksesibel untuk semua pengguna.
-                  </p>
-                  
-                  <div className="flex gap-3">
-                    <button className="px-5 py-2 text-blue-600 bg-white border border-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
-                      Edit Postingan
-                    </button>
-                    <button 
-                      onClick={() => navigate('/company-applicants')}
-                      className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Lihat Pelamar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Job Card 2 */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <div className="flex gap-5">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 border border-gray-200"></div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-900">UI Designer</h4>
-                  <p className="text-sm font-medium text-blue-600 mb-3">Batas Pendaftaran : 28 Oktober 2025</p>
-                  
-                  <div className="flex flex-wrap gap-5 text-xs font-medium text-gray-500 mb-4">
-                    <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-gray-400"/> Jakarta Selatan</span>
-                    <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-gray-400"/> 12 juta</span>
-                    <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-gray-400"/> Remote</span>
-                    <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-gray-400"/> Remote</span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 mb-6 max-w-4xl">
-                    Bergabunglah dengan tim kreatif kami dan kembangkan produk digital yang memberdayakan jutaan pengguna.
-                  </p>
-                  
-                  <div className="flex gap-3">
-                    <button className="px-5 py-2 text-blue-600 bg-white border border-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
-                      Edit Postingan
-                    </button>
-                    <button 
-                      onClick={() => navigate('/company-applicants')}
-                      className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Lihat Pelamar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Job Card 3 */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <div className="flex gap-5">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 border border-gray-200"></div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-900">UI Designer</h4>
-                  <p className="text-sm font-medium text-blue-600 mb-3">Batas Pendaftaran : 28 Oktober 2025</p>
-                  
-                  <div className="flex flex-wrap gap-5 text-xs font-medium text-gray-500 mb-4">
-                    <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-gray-400"/> Jakarta Selatan</span>
-                    <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-gray-400"/> 12 juta</span>
-                    <span className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-gray-400"/> Remote</span>
-                    <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-gray-400"/> Remote</span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 mb-6 max-w-4xl">
-                    Posisi terbuka untuk kandidat yang bersemangat dan berkomitmen terhadap inklusivitas digital.
-                  </p>
-                  
-                  <div className="flex gap-3">
-                    <button className="px-5 py-2 text-blue-600 bg-white border border-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
-                      Edit Postingan
-                    </button>
-                    <button 
-                      onClick={() => navigate('/company-applicants')}
-                      className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Lihat Pelamar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Search */}
+        <div className="mb-6 relative">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+          <input
+            type="text"
+            placeholder="Cari berdasarkan judul atau lokasi..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full max-w-md pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+          />
         </div>
+
+        {/* Job Cards */}
+        {loading ? (
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-slate-200 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 bg-slate-200 rounded w-1/3" />
+                    <div className="h-4 bg-slate-100 rounded w-1/4" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredJobs.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
+            <Briefcase className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+            <h3 className="font-bold text-base text-gray-900 mb-1">
+              {searchQuery ? `Tidak ditemukan hasil untuk "${searchQuery}"` : 'Belum ada lowongan'}
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">Buat postingan lowongan pertama Anda sekarang.</p>
+            <button
+              onClick={() => navigate('/company-post-job')}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Buat Lowongan
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {filteredJobs.map((job) => (
+              <div key={job.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4 hover:border-gray-200 transition-all">
+                {/* Logo */}
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+                  {logoLetter}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h3 className="font-bold text-base text-gray-900 truncate">{job.title}</h3>
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${job.is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                      {job.is_active ? '● Aktif' : '○ Nonaktif'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mt-1 flex-wrap">
+                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>
+                    <span>·</span>
+                    <span>{job.work_type || job.job_type}</span>
+                    <span>·</span>
+                    <span>{job.salary_range}</span>
+                    <span>·</span>
+                    <span>Diposting {timeAgo(job.created_at)}</span>
+                  </div>
+                  {job.disability_support && (
+                    <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                      ♿ {job.disability_support}
+                    </span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => navigate(`/company-applicants?job=${job.id}`)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />Pelamar
+                  </button>
+                  <button
+                    onClick={() => navigate('/company-post-job')}
+                    className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors cursor-pointer"
+                    title="Edit"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  {job.is_active && (
+                    <button
+                      onClick={() => handleDeactivate(job.id)}
+                      className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition-colors cursor-pointer"
+                      title="Nonaktifkan"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
-};
-
-export default CompanyJobPostings;
+}

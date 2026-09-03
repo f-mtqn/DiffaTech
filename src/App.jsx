@@ -12,6 +12,8 @@ import CompanyJobPostings from './pages/CompanyJobPostings';
 import CompanyApplicants from './pages/CompanyApplicants';
 import CompanyCandidateDetail from './pages/CompanyCandidateDetail';
 import CompanyPostJob from './pages/CompanyPostJob';
+import CompanyChatList from './pages/CompanyChatList';
+import CompanyRoomChat from './pages/CompanyRoomChat';
 import ChatList from './pages/ChatList';
 import RoomChat from './pages/RoomChat';
 import Profile from './pages/Profile';
@@ -74,7 +76,7 @@ function App() {
             }
           />
           <Route
-            path="/company-candidate-detail"
+            path="/company-candidate-detail/:id"
             element={
               <ProtectedRoute allowedRole="company">
                 <CompanyCandidateDetail />
@@ -106,10 +108,27 @@ function App() {
             }
           />
           <Route
-            path="/chat/:id"
+            path="/chat/:roomId"
             element={
               <ProtectedRoute allowedRole="job_seeker">
                 <RoomChat />
+              </ProtectedRoute>
+            }
+          />
+          {/* Company Chat Routes */}
+          <Route
+            path="/company-chat"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <CompanyChatList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company-chat/:roomId"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <CompanyRoomChat />
               </ProtectedRoute>
             }
           />

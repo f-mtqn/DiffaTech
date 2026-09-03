@@ -1,140 +1,210 @@
-import React from 'react';
-import { Edit2, MapPin, DollarSign, Briefcase, Flame } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import CompanySidebar from '../components/CompanySidebar';
+import { useAuth } from '../context/AuthContext';
+import { fetchCompanyJobs, fetchAllCompanyApplicants, timeAgo } from '../utils/api';
+import {
+  Briefcase, Users, Eye, Plus, TrendingUp, BarChart3,
+  CheckCircle2, Clock, ArrowRight
+} from 'lucide-react';
 
-const CompanyDashboard = () => {
+export default function CompanyDashboard() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [jobs, setJobs] = useState([]);
+  const [applicants, setApplicants] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const companyMeta = user?.user_metadata || {};
+  const companyName = companyMeta.company_name || 'Perusahaan Anda';
+  const logoLetter = companyName.charAt(0).toUpperCase();
+
+  useEffect(() => {
+    if (user) loadData();
+  }, [user]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [jobData, appData] = await Promise.all([
+        fetchCompanyJobs(user.id),
+        fetchAllCompanyApplicants(user.id),
+      ]);
+      setJobs(jobData);
+      setApplicants(appData);
+    } catch (err) {
+      console.error('Error loading dashboard:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalJobs = jobs.length;
+  const activeJobs = jobs.filter((j) => j.is_active).length;
+  const totalApplicants = applicants.length;
+  const newApplicants = applicants.filter((a) => a.status === 'review').length;
+
+  const getStatusBadge = (status) => {
+    const map = {
+      review: 'bg-amber-50 text-amber-700 border border-amber-200',
+      interview: 'bg-blue-50 text-blue-700 border border-blue-200',
+      accepted: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      rejected: 'bg-red-50 text-red-700 border border-red-200',
+    };
+    const labels = { review: 'Ditinjau', interview: 'Interview', accepted: 'Diterima', rejected: 'Ditolak' };
+    return { className: map[status] || map.review, label: labels[status] || 'Ditinjau' };
+  };
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
       <CompanySidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
-        {/* Banner */}
-        <div className="bg-blue-600 rounded-2xl p-8 mb-8 flex justify-between items-center text-white relative overflow-hidden">
-          <div className="relative z-10 max-w-xl">
-            <h2 className="text-3xl font-bold mb-2">Siap memberi banyak lowongan pekerjaan</h2>
-            <p className="text-blue-100 text-lg">Meningkatkan kepercayaan kepada disabilitas</p>
+      <main className="flex-1 ml-64 p-6 lg:p-10 max-w-[1500px]">
+        {/* Header */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-gray-200">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-2">
+              <BarChart3 className="w-3.5 h-3.5" />
+              Dashboard Perusahaan
+            </div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">
+              Selamat Datang, <span className="text-blue-600">{companyName}</span>
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">Kelola lowongan dan pantau pelamar disabilitas terbaik Anda.</p>
           </div>
-          <div className="relative z-10 hidden md:block">
-            {/* Simple SVG Illustration imitating the one in design */}
-            <svg width="120" height="120" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white opacity-80">
-              <circle cx="50" cy="20" r="8" />
-              <path d="M50 28 L50 60" />
-              <path d="M30 45 L50 45" />
-              <circle cx="30" cy="80" r="10" />
-              <circle cx="70" cy="80" r="10" />
-              <path d="M20 80 L80 80" />
-              <path d="M40 80 L40 60 L60 60 L60 80" />
-              <path d="M10 65 L30 65" />
-              <path d="M10 70 L25 70" />
-            </svg>
-          </div>
-          {/* Decorative background shapes */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3"></div>
+          <button
+            onClick={() => navigate('/company-post-job')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm shadow-sm transition-colors cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Posting Lowongan Baru
+          </button>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex justify-between items-start">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1 capitalize">company</h3>
-              <p className="text-base font-medium text-gray-900">m@example.com</p>
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Total Lowongan', value: loading ? '...' : totalJobs, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: 'Lowongan Aktif', value: loading ? '...' : activeJobs, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: 'Total Pelamar', value: loading ? '...' : totalApplicants, icon: Users, color: 'text-violet-600', bg: 'bg-violet-50' },
+            { label: 'Menunggu Review', value: loading ? '...' : newApplicants, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-3`}>
+                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
             </div>
-            <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition-colors">
-              <Edit2 className="w-4 h-4" />
-            </button>
-          </div>
-          
-          <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex flex-col justify-center items-center">
-            <h3 className="text-4xl font-bold text-gray-900 mb-2">12</h3>
-            <p className="text-sm text-gray-500">Posting Lamaran</p>
-          </div>
-          
-          <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex flex-col justify-center items-center">
-            <h3 className="text-4xl font-bold text-gray-900 mb-2">2</h3>
-            <p className="text-sm text-gray-500">Sedang berjalan</p>
-          </div>
+          ))}
         </div>
 
-        {/* Info Card */}
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-8">
-          <h3 className="text-sm font-medium text-gray-900 mb-1">Jabatan Kerja</h3>
-          <p className="text-sm text-gray-500">HR</p>
-        </div>
-
-        {/* Job Postings */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Posting Lamaran Kerja</h3>
-          <div className="space-y-4">
-            
-            {/* Job Card 1 */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex gap-5">
-                <div className="w-14 h-14 bg-gray-100 rounded-xl flex-shrink-0 border border-gray-200"></div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-900">UI Designer</h4>
-                  <p className="text-sm text-gray-500 mb-3">Lui Company</p>
-                  
-                  <div className="flex flex-wrap gap-4 text-xs font-medium text-gray-500 mb-4">
-                    <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gray-400"/> Jakarta Selatan</span>
-                    <span className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-gray-400"/> 12 juta</span>
-                    <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-gray-400"/> Remote</span>
-                    <span className="flex items-center gap-1.5"><Flame className="w-3.5 h-3.5 text-gray-400"/> Remote</span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 mb-5 leading-relaxed max-w-3xl">
-                    Kami mencari UI Designer berbakat yang mampu merancang antarmuka inklusif dan aksesibel untuk semua pengguna.
-                  </p>
-                  
-                  <div className="flex gap-3">
-                    <button className="px-5 py-2.5 text-blue-600 bg-white border-2 border-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors">
-                      Edit Postingan
-                    </button>
-                    <button className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm">
-                      Lihat Pelamar
-                    </button>
-                  </div>
-                </div>
+        {/* 2-Column Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* Lowongan Terbaru */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-blue-600" />
+                <h3 className="font-bold text-base text-gray-900">Lowongan Terbaru</h3>
               </div>
+              <Link to="/company-job-postings" className="text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-1">
+                Lihat Semua <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            
-            {/* Job Card 2 */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex gap-5">
-                <div className="w-14 h-14 bg-gray-100 rounded-xl flex-shrink-0 border border-gray-200"></div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-900">UI Designer</h4>
-                  <p className="text-sm text-gray-500 mb-3">Lui Company</p>
-                  
-                  <div className="flex flex-wrap gap-4 text-xs font-medium text-gray-500 mb-4">
-                    <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gray-400"/> Jakarta Selatan</span>
-                    <span className="flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-gray-400"/> 12 juta</span>
-                    <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-gray-400"/> Remote</span>
-                    <span className="flex items-center gap-1.5"><Flame className="w-3.5 h-3.5 text-gray-400"/> Remote</span>
+            <div className="divide-y divide-gray-50">
+              {loading ? (
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="px-6 py-4 animate-pulse flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-4 bg-slate-200 rounded w-1/2" />
+                      <div className="h-3 bg-slate-100 rounded w-1/3" />
+                    </div>
                   </div>
-                  
-                  <p className="text-sm text-gray-600 mb-5 leading-relaxed max-w-3xl">
-                    Bergabunglah dengan tim kreatif kami dan kembangkan produk digital yang memberdayakan jutaan pengguna.
-                  </p>
-                  
-                  <div className="flex gap-3">
-                    <button className="px-5 py-2.5 text-blue-600 bg-white border-2 border-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors">
-                      Edit Postingan
-                    </button>
-                    <button className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm">
-                      Lihat Pelamar
-                    </button>
-                  </div>
+                ))
+              ) : jobs.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <Briefcase className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Belum ada lowongan.</p>
+                  <button
+                    onClick={() => navigate('/company-post-job')}
+                    className="mt-3 text-xs font-semibold text-blue-600 hover:underline"
+                  >
+                    Buat lowongan pertama →
+                  </button>
                 </div>
-              </div>
+              ) : (
+                jobs.slice(0, 5).map((job) => (
+                  <div key={job.id} className="px-6 py-4 flex items-center gap-3 hover:bg-gray-50/50 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                      {logoLetter}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-gray-900 truncate">{job.title}</p>
+                      <p className="text-xs text-gray-500">{job.location} · {timeAgo(job.created_at)}</p>
+                    </div>
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${job.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {job.is_active ? 'Aktif' : 'Nonaktif'}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
+          </div>
 
+          {/* Pelamar Terbaru */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-violet-600" />
+                <h3 className="font-bold text-base text-gray-900">Pelamar Terbaru</h3>
+              </div>
+              <Link to="/company-applicants" className="text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-1">
+                Lihat Semua <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {loading ? (
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="px-6 py-4 animate-pulse flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-200 shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-4 bg-slate-200 rounded w-1/2" />
+                      <div className="h-3 bg-slate-100 rounded w-1/3" />
+                    </div>
+                  </div>
+                ))
+              ) : applicants.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <Users className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Belum ada pelamar.</p>
+                </div>
+              ) : (
+                applicants.slice(0, 5).map((app) => {
+                  const name = app.profiles?.full_name || 'Kandidat';
+                  const { className, label } = getStatusBadge(app.status);
+                  return (
+                    <div
+                      key={app.id}
+                      onClick={() => navigate(`/company-candidate-detail/${app.id}`)}
+                      className="px-6 py-4 flex items-center gap-3 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                        {name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-gray-900 truncate">{name}</p>
+                        <p className="text-xs text-gray-500 truncate">{app.job_listings?.title || 'Posisi'}</p>
+                      </div>
+                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${className}`}>{label}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       </main>
     </div>
   );
-};
-
-export default CompanyDashboard;
+}

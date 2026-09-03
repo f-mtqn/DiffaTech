@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, PlusCircle, Users, Bell, ChevronDown, Briefcase, LogOut } from 'lucide-react';
+import { Home, PlusCircle, Users, Bell, ChevronDown, Briefcase, LogOut, MessageSquare } from 'lucide-react';
 
 const CompanySidebar = () => {
   const { user, signOut } = useAuth();
@@ -21,7 +21,9 @@ const CompanySidebar = () => {
   const navItems = [
     { to: '/company-dashboard', icon: Home, label: 'Dashboard' },
     { to: '/company-post-job', icon: PlusCircle, label: 'Posting Lowongan Baru' },
-    { to: '/company-job-postings', icon: Users, label: 'Daftar Kandidat Saya' },
+    { to: '/company-job-postings', icon: Briefcase, label: 'Daftar Lowongan' },
+    { to: '/company-applicants', icon: Users, label: 'Daftar Pelamar' },
+    { to: '/company-chat', icon: MessageSquare, label: 'Pesan & Chat' },
   ];
 
   return (
@@ -56,12 +58,12 @@ const CompanySidebar = () => {
               key={to}
               to={to}
               className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
-                isActive(to)
-                  ? 'bg-gray-100 text-gray-900'
+                isActive(to) || location.pathname.startsWith(to + '/')
+                  ? 'bg-blue-50 text-blue-700'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive(to) ? 'text-gray-700' : 'text-gray-500'}`} />
+              <Icon className={`w-5 h-5 ${isActive(to) || location.pathname.startsWith(to + '/') ? 'text-blue-600' : 'text-gray-500'}`} />
               {label}
             </Link>
           ))}
@@ -69,11 +71,11 @@ const CompanySidebar = () => {
             to="/company-notifications"
             className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
               isActive('/company-notifications')
-                ? 'bg-gray-100 text-gray-900'
+                ? 'bg-blue-50 text-blue-700'
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            <Bell className={`w-5 h-5 ${isActive('/company-notifications') ? 'text-gray-700' : 'text-gray-500'}`} />
+            <Bell className={`w-5 h-5 ${isActive('/company-notifications') ? 'text-blue-600' : 'text-gray-500'}`} />
             Notifikasi
           </Link>
         </nav>

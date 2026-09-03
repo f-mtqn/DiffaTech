@@ -2,9 +2,14 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CompanySidebar from '../components/CompanySidebar';
+import { useAuth } from '../context/AuthContext';
+import { postJob } from '../utils/api';
 
 const CompanyPostJob = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [form, setForm] = useState({
     judulPekerjaan: '',
     lokasiKerja: '',
@@ -40,10 +45,52 @@ const CompanyPostJob = () => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/company-job-postings');
+    setError('');
+
+    if (!form.judulPekerjaan || !form.lokasiKerja || !form.tipeKerja || !form.deskripsi) {
+      setError('Harap lengkapi semua field wajib (*).');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const gajiMinNum = parseInt(form.gajiMin.replace(/\./g, '').replace(/,/g, '')) || 0;
+      const gajiMaxNum = parseInt(form.gajiMax.replace(/\./g, '').replace(/,/g, '')) || 0;
+      const gajiFmt = gajiMinNum
+        ? `Rp ${gajiMinNum.toLocaleString('id-ID')} / bln`
+        : '-';
+
+      const companyMeta = user?.user_metadata || {};
+
+      await postJob({
+        company_id: user.id,
+        title: form.judulPekerjaan,
+        company_name: companyMeta.company_name || 'Perusahaan Anda',
+        location: form.lokasiKerja,
+        work_type: form.tipeKerja,
+        job_type: form.tipePekerjaan || 'Full-Time',
+        salary_range: gajiFmt,
+        salary_min: gajiMinNum,
+        salary_max: gajiMaxNum,
+        deadline: form.batasPendaftaran || null,
+        description: form.deskripsi,
+        disability_support: form.disabilitas.length > 0 ? form.disabilitas.join(' & ') : null,
+        job_types: form.tipePekerjaan ? [form.tipePekerjaan] : [],
+        company_logo_letter: (companyMeta.company_name || 'P').charAt(0).toUpperCase(),
+        company_verified: false,
+        is_active: true,
+      });
+      navigate('/company-job-postings');
+    } catch (err) {
+      setError('Gagal memposting lowongan. Silakan coba lagi.');
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
+
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
@@ -75,10 +122,17 @@ const CompanyPostJob = () => {
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-8">Detail Lowongan</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Detail Lowongan</h3>
+
+          {error && (
+            <div className="mb-6 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Row 1: Judul & Lokasi */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Judul Pekerjaan <span className="text-red-500">*</span></label>
@@ -244,9 +298,10 @@ const CompanyPostJob = () => {
               </button>
               <button
                 type="submit"
-                className="bg-blue-600 text-white font-bold px-8 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition-colors shadow-sm"
+                disabled={saving}
+                className="bg-blue-600 text-white font-bold px-8 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-60 cursor-pointer"
               >
-                Posting Lowongan
+                {saving ? 'Memposting...' : 'Posting Lowongan'}
               </button>
             </div>
           </form>
