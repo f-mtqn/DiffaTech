@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../utils/supabaseClient';
 import heroImage from '../assets/hero.jpg';
 
 export default function Login() {
@@ -11,7 +12,7 @@ export default function Login() {
   const [activeTab, setActiveTab] = useState('pencari_kerja'); // 'pencari_kerja' | 'perusahaan'
   const [rememberMe, setRememberMe] = useState(false);
 
-  const { signIn, setRole } = useAuth();
+  const { signIn, signOut, setRole } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -26,7 +27,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { error: signInError } = await signIn(email, password);
+      const { data, error: signInError } = await signIn(email, password);
 
       if (signInError) {
         if (signInError.message?.toLowerCase().includes('invalid login credentials')) {
@@ -38,10 +39,35 @@ export default function Login() {
         return;
       }
 
-      // Successful login
-      const chosenRole = activeTab === 'perusahaan' ? 'company' : 'job_seeker';
-      setRole(chosenRole);
-      if (chosenRole === 'company') {
+      // Cek peran aktual dari user metadata atau tabel profiles
+      let actualRole = data?.user?.user_metadata?.role;
+      if (!actualRole && data?.user?.id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        actualRole = profile?.role;
+      }
+      actualRole = actualRole || 'job_seeker';
+
+      const expectedRole = activeTab === 'perusahaan' ? 'company' : 'job_seeker';
+
+      // Validasi ketat: jika tab tidak sesuai peran akun yang terdaftar
+      if (actualRole !== expectedRole) {
+        await signOut();
+        if (actualRole === 'company') {
+          setError('Akun ini terdaftar sebagai Perusahaan. Silakan pilih tab "Perusahaan" untuk masuk.');
+        } else {
+          setError('Akun ini terdaftar sebagai Pencari Kerja. Silakan pilih tab "Pencari Kerja" untuk masuk.');
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Peran cocok, set role dan arahkan ke dashboard yang sesuai
+      setRole(actualRole);
+      if (actualRole === 'company') {
         navigate('/company-dashboard');
       } else {
         navigate('/dashboard');

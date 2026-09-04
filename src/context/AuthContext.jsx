@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user && !localStorage.getItem('diffatech_role')) {
+      if (session?.user) {
         const detectedRole = session.user.user_metadata?.role || 'job_seeker';
         setRole(detectedRole);
       }
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        if (session?.user && !localStorage.getItem('diffatech_role')) {
+        if (session?.user) {
           const detectedRole = session.user.user_metadata?.role || 'job_seeker';
           setRole(detectedRole);
         }
