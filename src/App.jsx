@@ -12,9 +12,17 @@ import CompanyJobPostings from './pages/CompanyJobPostings';
 import CompanyApplicants from './pages/CompanyApplicants';
 import CompanyCandidateDetail from './pages/CompanyCandidateDetail';
 import CompanyPostJob from './pages/CompanyPostJob';
+import CompanyChatList from './pages/CompanyChatList';
+import CompanyRoomChat from './pages/CompanyRoomChat';
 import ChatList from './pages/ChatList';
 import RoomChat from './pages/RoomChat';
 import Profile from './pages/Profile';
+import AboutPage from './pages/AboutPage';
+import CompanyProfile from './pages/CompanyProfile';
+import JobSeekerNotifications from './pages/JobSeekerNotifications';
+import CompanyNotifications from './pages/CompanyNotifications';
+import MyApplications from './pages/MyApplications';
+import JobDetail from './pages/JobDetail';
 
 function App() {
   return (
@@ -26,10 +34,11 @@ function App() {
           <Route path="/register" element={<RegisterChoice />} />
           <Route path="/register/pencari-kerja" element={<RegisterJobSeeker />} />
           <Route path="/register/perusahaan" element={<RegisterCompany />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="job_seeker">
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -37,7 +46,7 @@ function App() {
           <Route
             path="/company-dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyDashboard />
               </ProtectedRoute>
             }
@@ -45,7 +54,7 @@ function App() {
           <Route
             path="/company-post-job"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyPostJob />
               </ProtectedRoute>
             }
@@ -53,7 +62,7 @@ function App() {
           <Route
             path="/company-job-postings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyJobPostings />
               </ProtectedRoute>
             }
@@ -61,15 +70,15 @@ function App() {
           <Route
             path="/company-applicants"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyApplicants />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/company-candidate-detail"
+            path="/company-candidate-detail/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="company">
                 <CompanyCandidateDetail />
               </ProtectedRoute>
             }
@@ -77,24 +86,97 @@ function App() {
           <Route
             path="/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="job_seeker">
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company-profile"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <CompanyProfile />
               </ProtectedRoute>
             }
           />
           <Route
             path="/chat"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="job_seeker">
                 <ChatList />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/chat/:id"
+            path="/chat/:roomId"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRole="job_seeker">
                 <RoomChat />
+              </ProtectedRoute>
+            }
+          />
+          {/* Company Chat Routes */}
+          <Route
+            path="/company-chat"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <CompanyChatList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company-chat/:roomId"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <CompanyRoomChat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <JobSeekerNotifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company-notifications"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <CompanyNotifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-applications"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <MyApplications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lamaran-saya"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <MyApplications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/job-detail/:id"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <JobDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/detail-pekerjaan/:id"
+            element={
+              <ProtectedRoute allowedRole="job_seeker">
+                <JobDetail />
               </ProtectedRoute>
             }
           />

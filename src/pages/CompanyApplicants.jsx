@@ -1,229 +1,169 @@
-import React from 'react';
-import { 
-  Home, 
-  PlusCircle, 
-  Users, 
-  Bell, 
-  ChevronDown, 
-  User, 
-  Briefcase,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import CompanySidebar from '../components/CompanySidebar';
+import { useAuth } from '../context/AuthContext';
+import { fetchAllCompanyApplicants, getApplicationStatusInfo, timeAgo } from '../utils/api';
+import { Users, Search, Eye, Filter } from 'lucide-react';
 
-const CompanyApplicants = () => {
+export default function CompanyApplicants() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [applicants, setApplicants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
-  const candidates = [
-    {
-      id: 1,
-      name: "Hanif Almansyah",
-      skills: ["Figma", "Figma", "Figma", "Figma"],
-      details: ["4 Sertikat", "12 Tahun Berpengalaman", "Tunarungu"]
-    },
-    {
-      id: 2,
-      name: "Michele",
-      skills: ["Figma", "Figma", "Figma", "Figma"],
-      details: ["4 Sertikat", "12 Tahun Berpengalaman", "Tunarungu"]
-    },
-    {
-      id: 3,
-      name: "Hanif Almansyah",
-      skills: ["Figma", "Figma", "Figma", "Figma"],
-      details: ["4 Sertikat", "12 Tahun Berpengalaman", "Tunarungu"]
-    },
-    {
-      id: 4,
-      name: "Michele",
-      skills: ["Figma", "Figma", "Figma", "Figma"],
-      details: ["4 Sertikat", "12 Tahun Berpengalaman", "Tunarungu"]
+  useEffect(() => {
+    if (user) loadApplicants();
+  }, [user]);
+
+  const loadApplicants = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchAllCompanyApplicants(user.id);
+      setApplicants(data);
+    } catch (err) {
+      console.error('Error loading applicants:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const skillColors = [
-    "bg-red-100 text-red-600",
-    "bg-gray-100 text-gray-600",
-    "bg-purple-100 text-purple-600",
-    "bg-orange-100 text-orange-600"
-  ];
+  const filtered = applicants.filter((app) => {
+    const name = app.profiles?.full_name || '';
+    const title = app.job_listings?.title || '';
+    const matchSearch =
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchStatus = filterStatus === 'all' || app.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+
+  const stats = {
+    total: applicants.length,
+    review: applicants.filter((a) => a.status === 'review').length,
+    interview: applicants.filter((a) => a.status === 'interview').length,
+    accepted: applicants.filter((a) => a.status === 'accepted').length,
+  };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col fixed left-0 top-0">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-blue-600 cursor-pointer" onClick={() => navigate('/company-dashboard')}>diffaTech</h1>
-        </div>
-        <div className="px-4">
-          <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors mt-4">
-            <div className="w-10 h-10 bg-slate-800 rounded flex items-center justify-center shrink-0">
-              <Briefcase className="w-5 h-5 text-white" />
+    <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
+      <CompanySidebar />
+      <main className="flex-1 ml-64 p-6 lg:p-10 max-w-[1500px]">
+        {/* Header */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-gray-200">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-2">
+              <Users className="w-3.5 h-3.5" />
+              Manajemen Pelamar
             </div>
-            <div className="flex-1 overflow-hidden">
-              <h2 className="text-sm font-bold truncate text-gray-900">Acme Inc</h2>
-              <p className="text-xs text-gray-500 truncate">Enterprise</p>
-            </div>
-            <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
-          </div>
-        </div>
-        <div className="px-6 py-6 flex-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2">Platform</p>
-          <nav className="space-y-1">
-            <a href="/company-dashboard" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50">
-              <Home className="w-5 h-5 text-gray-500" />
-              Dashboard
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50">
-              <PlusCircle className="w-5 h-5 text-gray-500" />
-              Posting Lowongan Baru
-            </a>
-            <a href="/company-job-postings" className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-md bg-blue-50 text-blue-600">
-              <Users className="w-5 h-5 text-blue-600" />
-              Daftar Kandidat Saya
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50">
-              <Bell className="w-5 h-5 text-gray-500" />
-              Notifikasi
-            </a>
-          </nav>
-        </div>
-        <div className="p-4 border-t border-gray-200 mt-auto">
-          <div className="flex items-center gap-3 p-2 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-gray-600" />
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-bold truncate text-gray-900">shadcn</p>
-              <p className="text-xs text-gray-500 truncate">m@example.com</p>
-            </div>
-            <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
-        {/* Banner */}
-        <div className="bg-blue-600 rounded-2xl p-8 mb-8 flex justify-between items-center text-white relative overflow-hidden">
-          <div className="relative z-10 max-w-xl">
-            <h2 className="text-3xl font-bold mb-2">Daftar Pelamar Kerja</h2>
-            <p className="text-blue-100 text-base">Meningkatkan kepercayaan kepada disabilitas</p>
-          </div>
-          <div className="relative z-10 hidden md:block">
-            {/* Outline SVG Illustration */}
-            <svg width="120" height="120" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white opacity-90">
-              <circle cx="50" cy="20" r="8" />
-              <path d="M50 28 L50 60" />
-              <path d="M30 45 L50 45" />
-              <circle cx="30" cy="80" r="10" />
-              <circle cx="70" cy="80" r="10" />
-              <path d="M20 80 L80 80" />
-              <path d="M40 80 L40 60 L60 60 L60 80" />
-              <path d="M10 65 L30 65" />
-              <path d="M10 70 L25 70" />
-            </svg>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">Daftar Pelamar</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {loading ? 'Memuat...' : `${stats.total} total pelamar`}
+            </p>
           </div>
         </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm md:col-span-6 flex items-center gap-4">
-            <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0"></div>
-            <h3 className="text-xl font-bold text-gray-900">UI Designer</h3>
-          </div>
-          
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm md:col-span-3 flex flex-col justify-center items-center">
-            <h3 className="text-4xl font-bold text-gray-900 mb-2">18</h3>
-            <p className="text-sm text-gray-500">Kandidat diterima</p>
-          </div>
-          
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm md:col-span-3 flex flex-col justify-center items-center">
-            <h3 className="text-4xl font-bold text-gray-900 mb-2">12</h3>
-            <p className="text-sm text-gray-500">Sisa pekerja</p>
-          </div>
-        </div>
-
-        {/* Table Header and Actions */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              Kandidat Pekerja <span className="text-gray-400 font-normal text-base">/ UI Designer</span>
-            </h3>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm">
-              Buka data kandidat diterima
+        {/* Stats pills */}
+        <div className="flex items-center gap-2 mb-6 flex-wrap">
+          {[
+            { id: 'all', label: `Semua (${stats.total})` },
+            { id: 'review', label: `Ditinjau (${stats.review})` },
+            { id: 'interview', label: `Interview (${stats.interview})` },
+            { id: 'accepted', label: `Diterima (${stats.accepted})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setFilterStatus(tab.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                filterStatus === tab.id
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {tab.label}
             </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="mb-6 relative">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+          <input
+            type="text"
+            placeholder="Cari nama pelamar atau posisi..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full max-w-md pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 bg-white outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          />
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-0 text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-3 bg-gray-50/80 border-b border-gray-100">
+            <span className="w-10">#</span>
+            <span>Kandidat</span>
+            <span className="px-4 text-center">Posisi</span>
+            <span className="px-4 text-center">Status</span>
+            <span className="text-right">Aksi</span>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold border-b border-gray-200">
-                  <th className="px-6 py-4">No</th>
-                  <th className="px-6 py-4">Nama Kandidat</th>
-                  <th className="px-6 py-4">Skills</th>
-                  <th className="px-6 py-4">All</th>
-                  <th className="px-6 py-4 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {candidates.map((candidate, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors bg-white">
-                    <td className="px-6 py-5 text-sm text-gray-500">{candidate.id}</td>
-                    <td className="px-6 py-5 text-sm font-semibold text-gray-900">{candidate.name}</td>
-                    <td className="px-6 py-5">
-                      <div className="flex gap-2">
-                        {candidate.skills.map((skill, i) => (
-                          <span key={i} className={`px-2.5 py-1 rounded-md text-xs font-semibold ${skillColors[i % skillColors.length]}`}>
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-xs text-gray-600 leading-relaxed">
-                      {candidate.details.map((detail, i) => (
-                        <div key={i}>• {detail}</div>
-                      ))}
-                    </td>
-                    <td className="px-6 py-5 text-center">
-                      <button 
-                        onClick={() => navigate('/company-candidate-detail')}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm inline-block"
-                      >
-                        Lihat Kandidat
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="p-4 border-t border-gray-100 flex justify-end items-center gap-2 text-sm text-gray-600 bg-white">
-            <button className="flex items-center gap-1 hover:text-gray-900 px-2 py-1 transition-colors">
-              <ChevronLeft className="w-4 h-4" /> Back
-            </button>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((num) => (
-                <button 
-                  key={num} 
-                  className={`w-8 h-8 rounded flex items-center justify-center font-medium transition-colors ${num === 2 ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
-                >
-                  {num}
-                </button>
-              ))}
+          {loading ? (
+            [1, 2, 3, 4].map((i) => (
+              <div key={i} className="px-6 py-4 animate-pulse flex items-center gap-4 border-b border-gray-50">
+                <div className="w-10 h-10 rounded-full bg-slate-200 shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-4 bg-slate-200 rounded w-1/4" />
+                  <div className="h-3 bg-slate-100 rounded w-1/3" />
+                </div>
+              </div>
+            ))
+          ) : filtered.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+              <h3 className="font-bold text-sm text-gray-900">
+                {searchQuery ? `Tidak ditemukan untuk "${searchQuery}"` : 'Belum ada pelamar'}
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">Pastikan ada lowongan aktif agar pelamar bisa mendaftar.</p>
             </div>
-            <button className="flex items-center gap-1 hover:text-gray-900 px-2 py-1 transition-colors">
-              Next <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          ) : (
+            filtered.map((app, idx) => {
+              const name = app.profiles?.full_name || 'Kandidat';
+              const { className, label } = getApplicationStatusInfo(app.status);
+              const disability = app.job_seeker_profiles?.disability_types?.join(', ') || '-';
+              const education = app.job_seeker_profiles?.last_education || '-';
+              return (
+                <div key={app.id} className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-0 px-6 py-4 border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <div className="w-10 flex items-center">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white flex items-center justify-center font-bold text-sm">
+                      {name.charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+                  <div className="flex flex-col pl-2">
+                    <p className="font-semibold text-sm text-gray-900">{name}</p>
+                    <p className="text-xs text-gray-500">{disability} · {education}</p>
+                    <p className="text-xs text-gray-400">{timeAgo(app.applied_at)}</p>
+                  </div>
+                  <div className="px-4 text-center">
+                    <span className="text-xs text-gray-700 font-medium">{app.job_listings?.title || '-'}</span>
+                  </div>
+                  <div className="px-4 text-center">
+                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${className}`}>{label}</span>
+                  </div>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      onClick={() => navigate(`/company-candidate-detail/${app.id}`)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />Detail
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </main>
     </div>
   );
-};
-
-export default CompanyApplicants;
+}

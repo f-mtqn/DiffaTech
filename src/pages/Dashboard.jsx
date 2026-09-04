@@ -1,78 +1,97 @@
-﻿import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { loadJobListings, applyToJob, hasApplied } from '../utils/profileApi';
+import ChatSidebar from '../components/ChatSidebar';
+import { useAuth } from '../context/AuthContext';
+import { fetchJobs, applyToJob, checkAlreadyApplied, timeAgo } from '../utils/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const [jobListings, setJobListings] = useState([]);
-  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [appliedJobs, setAppliedJobs] = useState(new Set());
-  const [applyingJobId, setApplyingJobId] = useState(null);
-  const [toast, setToast] = useState(null);
-
-  const [filterRemote, setFilterRemote] = useState(false);
-  const [filterFullTime, setFilterFullTime] = useState(false);
-  const [filterHybrid, setFilterHybrid] = useState(false);
-
-  // Load job listings dari Supabase
-  useEffect(() => {
-    setLoadingJobs(true);
-    loadJobListings()
-      .then(async (jobs) => {
-        setJobListings(jobs);
-        // Cek mana yang sudah dilamar user ini
-        if (user?.id) {
-          const appliedSet = new Set();
-          await Promise.all(
-            jobs.map(async (job) => {
-              const applied = await hasApplied(user.id, job.id);
-              if (applied) appliedSet.add(job.id);
-            })
-          );
-          setAppliedJobs(appliedSet);
-        }
-      })
-      .catch(err => console.error('Gagal load lowongan:', err))
-      .finally(() => setLoadingJobs(false));
-  }, [user?.id]);
-
-  // Filter berdasarkan search + tipe pekerjaan
-  const filteredJobs = jobListings.filter(job => {
-    const matchSearch = !searchQuery ||
-      job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.location?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const activeFilters = [];
-    if (filterRemote) activeFilters.push('Remote');
-    if (filterFullTime) activeFilters.push('Full-Time');
-    if (filterHybrid) activeFilters.push('Hybrid');
-
-    const matchFilter = activeFilters.length === 0 ||
-      activeFilters.some(f => (job.job_types || []).includes(f));
-
-    return matchSearch && matchFilter;
+  const [applying, setApplying] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+  const [filters, setFilters] = useState({
+    remote: false,
+    fullTime: false,
+    minSalary12: false,
   });
 
-  const handleApply = async (jobId) => {
-    if (!user?.id) { navigate('/login'); return; }
-    if (appliedJobs.has(jobId)) return;
-    setApplyingJobId(jobId);
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Load jobs dari Supabase
+  useEffect(() => {
+    loadJobs();
+  }, [searchQuery, filters]);
+
+  const loadJobs = async () => {
+    setLoading(true);
     try {
-      await applyToJob(user.id, jobId);
-      setAppliedJobs(prev => new Set([...prev, jobId]));
-      setToast('Lamaran berhasil dikirim! âœ…');
-      setTimeout(() => setToast(null), 3000);
+      let data = await fetchJobs({ search: searchQuery });
+      // Filter remote
+      if (filters.remote) {
+        data = data.filter((j) =>
+          j.work_type?.toLowerCase().includes('remote')
+        );
+      }
+      // Filter full time
+      if (filters.fullTime) {
+        data = data.filter((j) =>
+          j.job_type?.toLowerCase().includes('full')
+        );
+      }
+      // Filter salary >= 12jt
+      if (filters.minSalary12) {
+        data = data.filter((j) => (j.salary_min || 0) >= 12000000);
+      }
+      setJobs(data);
     } catch (err) {
-      setToast('Gagal melamar. Mungkin kamu sudah melamar sebelumnya.');
-      setTimeout(() => setToast(null), 3000);
+      console.error('Error loading jobs:', err);
     } finally {
-      setApplyingJobId(null);
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+
+  const handleFilterChange = (filterName) => {
+    setFilters((prev) => ({ ...prev, [filterName]: !prev[filterName] }));
+  };
+
+  const handleApply = async (job) => {
+    if (!user) {
+      showToast('Silakan login terlebih dahulu untuk melamar.');
+      return;
+    }
+    if (appliedJobs.has(job.id)) return;
+
+    setApplying(job.id);
+    try {
+      const alreadyApplied = await checkAlreadyApplied(job.id, user.id);
+      if (alreadyApplied) {
+        setAppliedJobs((prev) => new Set([...prev, job.id]));
+        showToast(`Kamu sudah pernah melamar untuk "${job.title}".`);
+        return;
+      }
+      await applyToJob({ jobId: job.id, applicantId: user.id, coverNote: '' });
+      setAppliedJobs((prev) => new Set([...prev, job.id]));
+      showToast(`Lamaran untuk "${job.title}" berhasil dikirim! Silakan pantau di Lamaran Saya.`);
+    } catch (err) {
+      showToast('Gagal mengirim lamaran. Coba lagi.');
+    } finally {
+      setApplying(null);
     }
   };
 
@@ -84,188 +103,194 @@ const Dashboard = () => {
     >
       {checked && (
         <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-          <path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 font-['Inter']">
-      {/* HEADER */}
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 font-['Inter'] flex">
+      <ChatSidebar />
+      <div className="flex-1 flex flex-col min-h-screen">
+        <Navbar />
+        <main className="pt-[68px] w-full max-w-[1024px] mx-auto px-6 py-8 flex flex-col gap-6">
+          {/* HERO BANNER */}
+          <section className="w-full rounded-2xl p-8 flex justify-between items-center bg-gradient-to-br from-[#2D52D6] to-[#3B5EEA]">
+            <div className="max-w-md">
+              <h1 className="font-bold text-[24px] leading-[33px] text-white">
+                Cari pekerjaan dengan mudah, tanpa halangan apa pun
+              </h1>
+              <p className="mt-1 font-normal text-[14px] text-[#BEDBFF]">
+                Meningkatkan kepercayaan kepada disabilitas
+              </p>
+            </div>
+            <div className="relative w-[120px] h-[110px] opacity-90 text-white/30">
+              <svg viewBox="0 0 120 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="15" r="10" stroke="currentColor" strokeWidth="3" />
+                <path d="M50 25V55" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M50 35L70 40" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M50 35L35 45" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M30 55H70" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M30 55V35" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <circle cx="45" cy="75" r="18" stroke="currentColor" strokeWidth="3" />
+                <circle cx="45" cy="75" r="4" stroke="currentColor" strokeWidth="2" />
+                <circle cx="75" cy="82" r="8" stroke="currentColor" strokeWidth="3" />
+                <path d="M70 55L75 74" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M60 55L65 68H55" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </section>
 
-      {/* MAIN CONTENT */}
-      <main className="pt-[68px] w-full max-w-[1024px] mx-auto px-6 py-8 flex flex-col gap-6">
-        {/* HERO BANNER */}
-        <section className="w-full rounded-2xl p-8 flex justify-between items-center bg-gradient-to-br from-[#2D52D6] to-[#3B5EEA]">
-          <div className="max-w-md">
-            <h1 className="font-bold text-[24px] leading-[33px] text-white">
-              Cari pekerjaan dengan mudah, tanpa halangan apa pun
-            </h1>
-            <p className="mt-1 font-normal text-[14px] text-[#BEDBFF]">
-              Ribuan lowongan dari perusahaan yang peduli aksesibilitas
-            </p>
-          </div>
-          <div className="relative w-[120px] h-[110px] opacity-90 text-white">
-            <svg
-              viewBox="0 0 120 110"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          {/* SEARCH BAR */}
+          <section className="w-full h-[57px] bg-white border border-slate-200 shadow-sm rounded-2xl flex items-center">
+            <div className="pl-4 pr-3">
+              <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+                <path d="M16 16L12.0167 12.0167M12.0167 12.0167C13.1222 10.9111 13.8056 9.38889 13.8056 7.69444C13.8056 4.31944 11.0694 1.58333 7.69444 1.58333C4.31944 1.58333 1.58333 4.31944 1.58333 7.69444C1.58333 11.0694 4.31944 13.8056 7.69444 13.8056C9.38889 13.8056 10.9111 13.1222 12.0167 12.0167Z" stroke="#90A1B9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="saya mau kerja.."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1 h-full outline-none font-normal text-[14px] text-slate-900 placeholder:text-[#90A1B9] bg-transparent"
+            />
+            <button
+              onClick={handleSearch}
+              className="m-2 px-6 py-2.5 bg-[#1447E6] text-white rounded-xl font-semibold text-[14px]"
             >
-              <circle cx="60" cy="55" r="45" stroke="currentColor" strokeWidth="8" />
-              <rect x="40" y="45" width="40" height="30" rx="4" stroke="currentColor" strokeWidth="6" />
-              <path d="M50 45V35C50 32.2386 52.2386 30 55 30H65C67.7614 30 70 32.2386 70 35V45" stroke="currentColor" strokeWidth="6" />
-              <circle cx="50" cy="85" r="15" stroke="currentColor" strokeWidth="6" fill="transparent" />
-              <circle cx="90" cy="85" r="15" stroke="currentColor" strokeWidth="6" fill="transparent" />
-            </svg>
-          </div>
-        </section>
+              Cari
+            </button>
+          </section>
 
-        {/* SEARCH BAR */}
-        <section className="w-full h-[57px] bg-white border border-slate-200 shadow-sm rounded-2xl flex items-center">
-          <div className="pl-4 pr-3">
-            <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-              <path d="M16 16L12.0167 12.0167M12.0167 12.0167C13.1222 10.9111 13.8056 9.38889 13.8056 7.69444C13.8056 4.31944 11.0694 1.58333 7.69444 1.58333C4.31944 1.58333 1.58333 4.31944 1.58333 7.69444C1.58333 11.0694 4.31944 13.8056 7.69444 13.8056C9.38889 13.8056 10.9111 13.1222 12.0167 12.0167Z" stroke="#90A1B9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <input
-            type="text"
-            placeholder="Cari posisi, perusahaan, atau lokasi..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 h-full outline-none font-normal text-[14px] text-slate-900 placeholder:text-[#90A1B9] bg-transparent"
-          />
-          <button
-            onClick={() => {}}
-            className="m-2 px-6 py-2.5 bg-[#1447E6] text-white rounded-xl font-semibold text-[14px]"
-          >
-            Cari
-          </button>
-        </section>
-
-        {/* CONTENT AREA */}
-        <div className="flex flex-row gap-6">
-          {/* Left: Filter Sidebar */}
-          <aside className="w-44 h-fit bg-white border border-slate-100 rounded-2xl p-4 flex flex-col gap-3">
-            <h2 className="font-semibold text-[14px] text-[#314158] mb-1">Filter</h2>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="hidden" checked={filterRemote} onChange={() => setFilterRemote(p => !p)}/>
-              <CheckboxIcon checked={filterRemote} />
-              <span className="font-normal text-[14px] text-[#45556C]">Remote</span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="hidden" checked={filterFullTime} onChange={() => setFilterFullTime(p => !p)}/>
-              <CheckboxIcon checked={filterFullTime} />
-              <span className="font-normal text-[14px] text-[#45556C]">Full-Time</span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="hidden" checked={filterHybrid} onChange={() => setFilterHybrid(p => !p)}/>
-              <CheckboxIcon checked={filterHybrid} />
-              <span className="font-normal text-[14px] text-[#45556C]">Hybrid</span>
-            </label>
-          </aside>
-
-          {/* Right: Job Listings */}
-          <div className="flex-1 flex flex-col gap-4">
-            {loadingJobs ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
-              </div>
-            ) : filteredJobs.length === 0 ? (
-              <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center text-[#90A1B9]">
-                <p className="font-semibold text-[16px]">Tidak ada lowongan ditemukan</p>
-                <p className="text-[14px] mt-1">Coba ubah kata kunci pencarian atau filter</p>
-              </div>
-            ) : (
-              filteredJobs.map((job) => {
-                const isApplied = appliedJobs.has(job.id);
-                const isApplying = applyingJobId === job.id;
-                const initials = job.company_name?.slice(0, 2).toUpperCase() || 'CO';
-                const colors = ['#10B981','#6366F1','#F59E0B','#EF4444','#3B82F6'];
-                const colorIdx = job.company_name?.charCodeAt(0) % colors.length || 0;
-
-                return (
-                  <div key={job.id} className="bg-white border border-slate-100 shadow-sm rounded-2xl p-5 flex flex-row gap-4">
-                    {/* Company Logo */}
-                    <div
-                      className="w-12 h-12 rounded-xl shrink-0 flex items-center justify-center text-white font-bold text-[14px]"
-                      style={{ backgroundColor: colors[colorIdx] }}
-                    >
-                      {initials}
-                    </div>
-
-                    <div className="flex-1 flex flex-col">
-                      <h3 className="font-bold text-[18px] text-[#1D293D]">{job.title}</h3>
-                      <p className="font-normal text-[14px] text-[#62748E]">{job.company_name}</p>
-
-                      <div className="mt-2 flex flex-wrap gap-3 items-center">
-                        {job.location && (
-                          <div className="flex items-center gap-1.5">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="#62748E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="#62748E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            <span className="font-normal text-[12px] text-[#62748E]">{job.location}</span>
-                          </div>
-                        )}
-                        {job.salary_range && (
-                          <div className="flex items-center gap-1.5">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2V22M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="#62748E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            <span className="font-normal text-[12px] text-[#62748E]">{job.salary_range}</span>
-                          </div>
-                        )}
-                        {(job.job_types || []).map(type => (
-                          <span key={type} className="text-[12px] bg-blue-50 text-blue-600 border border-blue-100 rounded-full px-2 py-0.5">{type}</span>
-                        ))}
+          {/* CONTENT AREA */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left: Job Listings */}
+            <div className="flex-1 flex flex-col gap-4">
+              {loading ? (
+                /* Loading skeleton */
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-white border border-slate-100 shadow-sm rounded-2xl p-5 animate-pulse">
+                    <div className="flex gap-4">
+                      <div className="w-12 h-12 bg-slate-200 rounded-xl shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-5 bg-slate-200 rounded w-1/2" />
+                        <div className="h-4 bg-slate-100 rounded w-1/3" />
+                        <div className="h-3 bg-slate-100 rounded w-3/4 mt-2" />
+                        <div className="h-3 bg-slate-100 rounded w-full" />
                       </div>
-
-                      {(job.accessibility_features || []).length > 0 && (
-                        <div className="mt-2 flex items-center gap-1.5">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="#62748E"/><path d="M12 7v5M9 9l-3 5h4l1 4h2l1-4h4l-3-5" stroke="#62748E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          <span className="text-[12px] text-[#62748E]">Ramah: <span className="font-medium text-[#314158]">{job.accessibility_features.join(', ')}</span></span>
-                        </div>
-                      )}
-
-                      {job.description && (
-                        <p className="mt-3 font-normal text-[14px] leading-[22.75px] text-[#62748E] line-clamp-2">
-                          {job.description}
-                        </p>
-                      )}
-
-                      {/* Skills */}
-                      {(job.job_skills || []).length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {job.job_skills.map(s => (
-                            <span key={s.skill_name} className="text-[11px] bg-slate-100 text-slate-600 rounded-full px-2 py-0.5">{s.skill_name}</span>
-                          ))}
-                        </div>
-                      )}
-
-                      <button
-                        onClick={() => handleApply(job.id)}
-                        disabled={isApplied || isApplying}
-                        className={`mt-3 rounded-xl px-5 py-2.5 font-semibold text-[14px] w-fit transition-colors ${
-                          isApplied
-                            ? 'bg-green-100 text-green-700 cursor-default'
-                            : 'bg-[#1447E6] text-white hover:bg-[#1035c8]'
-                        }`}
-                      >
-                        {isApplying ? 'Mengirim...' : isApplied ? 'âœ“ Sudah Dilamar' : 'Lamar Kerja'}
-                      </button>
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </main>
+                ))
+              ) : jobs.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
+                  <p className="text-[#62748E] text-sm">
+                    {searchQuery ? `Tidak ada lowongan untuk "${searchQuery}".` : 'Belum ada lowongan tersedia.'}
+                  </p>
+                </div>
+              ) : (
+                jobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="bg-white border border-slate-100 shadow-sm rounded-2xl p-5 flex flex-row gap-4 hover:border-slate-200 transition-all"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl shrink-0 flex items-center justify-center font-bold text-lg shadow-xs">
+                      {job.company_logo_letter || job.company_name?.charAt(0) || '?'}
+                    </div>
+                    <div className="flex-1 flex flex-col">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-[18px] text-[#1D293D]">{job.title}</h3>
+                        <span className="text-[11px] text-[#90A1B9] font-medium hidden sm:inline-block">
+                          {timeAgo(job.created_at)}
+                        </span>
+                      </div>
+                      <p className="font-normal text-[14px] text-[#62748E]">{job.company_name}</p>
 
-      {/* Toast notification */}
-      {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#1447E6] text-white px-6 py-3 rounded-2xl shadow-xl font-semibold text-[14px]">
-          {toast}
+                      <div className="mt-2 flex gap-3 sm:gap-4 items-center flex-wrap">
+                        <span className="flex items-center gap-1.5 text-[12px] text-[#62748E]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="#62748E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="#62748E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          {job.location}
+                        </span>
+                        <span className="flex items-center gap-1.5 text-[12px] text-[#62748E]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2V22M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="#62748E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          {job.salary_range}
+                        </span>
+                        <span className="flex items-center gap-1.5 text-[12px] text-[#62748E]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="#62748E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="#62748E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          {job.work_type}
+                        </span>
+                        {job.disability_support && (
+                          <span className="flex items-center gap-1.5 text-[12px] text-[#62748E]">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#62748E" strokeWidth="2"/><circle cx="12" cy="12" r="4" stroke="#62748E" strokeWidth="2"/></svg>
+                            {job.disability_support}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="mt-3 font-normal text-[14px] leading-[22.75px] text-[#62748E] line-clamp-2">
+                        {job.description}
+                      </p>
+
+                      <div className="mt-4 flex items-center gap-2.5">
+                        <button
+                          onClick={() => handleApply(job)}
+                          disabled={applying === job.id || appliedJobs.has(job.id)}
+                          className={`rounded-xl px-5 py-2.5 font-semibold text-[13px] transition-colors cursor-pointer shadow-xs ${
+                            appliedJobs.has(job.id)
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                              : 'bg-[#1447E6] hover:bg-[#1035c8] text-white'
+                          } disabled:opacity-70`}
+                        >
+                          {applying === job.id ? 'Mengirim...' : appliedJobs.has(job.id) ? 'Terkirim ✓' : 'Lamar Kerja'}
+                        </button>
+                        <Link
+                          to={`/job-detail/${job.id}`}
+                          className="border border-[#E2E8F0] text-[#314158] hover:bg-slate-50 hover:border-slate-300 rounded-xl px-4 py-2.5 font-semibold text-[13px] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          Detail Pekerjaan
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Right: Filter Sidebar */}
+            <aside className="w-full lg:w-48 h-fit bg-white border border-slate-100 rounded-2xl p-4 flex flex-col gap-3 shrink-0">
+              <h2 className="font-semibold text-[14px] text-[#314158] mb-1">Filter</h2>
+
+              <label className="flex items-center gap-2 cursor-pointer" onClick={() => handleFilterChange('minSalary12')}>
+                <CheckboxIcon checked={filters.minSalary12} />
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2V22M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span className="font-normal text-[14px] text-[#45556C]">≥ 12 juta</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer" onClick={() => handleFilterChange('remote')}>
+                <CheckboxIcon checked={filters.remote} />
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 12H22" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span className="font-normal text-[14px] text-[#45556C]">Remote</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer" onClick={() => handleFilterChange('fullTime')}>
+                <CheckboxIcon checked={filters.fullTime} />
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="#45556C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span className="font-normal text-[14px] text-[#45556C]">Full-Time</span>
+              </label>
+            </aside>
+          </div>
+        </main>
+      </div>
+
+      {/* Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-8 right-8 z-50 flex items-center gap-2.5 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl text-xs font-semibold">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-emerald-400">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>{toastMessage}</span>
         </div>
       )}
     </div>

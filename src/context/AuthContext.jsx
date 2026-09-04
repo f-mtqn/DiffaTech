@@ -9,12 +9,24 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRoleState] = useState(() => {
+    return localStorage.getItem('diffatech_role') || 'job_seeker';
+  });
+
+  const setRole = (newRole) => {
+    localStorage.setItem('diffatech_role', newRole);
+    setRoleState(newRole);
+  };
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user && !localStorage.getItem('diffatech_role')) {
+        const detectedRole = session.user.user_metadata?.role || 'job_seeker';
+        setRole(detectedRole);
+      }
       setLoading(false);
     });
 
@@ -23,6 +35,10 @@ export const AuthProvider = ({ children }) => {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        if (session?.user && !localStorage.getItem('diffatech_role')) {
+          const detectedRole = session.user.user_metadata?.role || 'job_seeker';
+          setRole(detectedRole);
+        }
         setLoading(false);
       }
     );
@@ -50,6 +66,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
+    localStorage.removeItem('diffatech_role');
+    setRoleState('job_seeker');
     const { error } = await supabase.auth.signOut();
     return { error };
   };
@@ -58,6 +76,8 @@ export const AuthProvider = ({ children }) => {
     user,
     session,
     loading,
+    role,
+    setRole,
     signUp,
     signIn,
     signOut,

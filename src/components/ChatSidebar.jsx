@@ -1,23 +1,24 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { LogOut } from 'lucide-react';
 
 const ChatSidebar = ({ showUserProfile = false }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   const isActive = (path) => location.pathname.startsWith(path);
 
   return (
-    <aside className="w-[240px] min-h-screen bg-white border-r border-slate-100 flex flex-col justify-between py-6 px-4 shrink-0">
-      <div>
-        {/* Logo */}
-        <Link
-          to="/dashboard"
-          className="font-bold text-[20px] text-[#155DFC] tracking-tight px-2"
-        >
-          diffaTech
-        </Link>
+    <aside className="w-[240px] shrink-0">
+      <div className="fixed left-0 top-[68px] bottom-0 w-[240px] bg-white border-r border-slate-100 flex flex-col justify-between py-5 px-4 z-40 overflow-y-auto">
+        <div>
 
         {/* User Profile Card (shown in RoomChat) */}
         {showUserProfile && (
@@ -112,8 +113,12 @@ const ChatSidebar = ({ showUserProfile = false }) => {
             </Link>
 
             <Link
-              to="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium text-[#45556C] hover:bg-slate-50 transition-colors"
+              to="/dashboard"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
+                location.pathname === '/dashboard'
+                  ? 'bg-[#EEF2FF] text-[#155DFC]'
+                  : 'text-[#45556C] hover:bg-slate-50'
+              }`}
             >
               <svg
                 width="18"
@@ -141,8 +146,12 @@ const ChatSidebar = ({ showUserProfile = false }) => {
             </Link>
 
             <Link
-              to="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium text-[#45556C] hover:bg-slate-50 transition-colors"
+              to="/my-applications"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
+                isActive('/my-applications') || isActive('/lamaran-saya')
+                  ? 'bg-[#EEF2FF] text-[#155DFC]'
+                  : 'text-[#45556C] hover:bg-slate-50'
+              }`}
             >
               <svg
                 width="18"
@@ -170,8 +179,12 @@ const ChatSidebar = ({ showUserProfile = false }) => {
             </Link>
 
             <Link
-              to="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium text-[#45556C] hover:bg-slate-50 transition-colors"
+              to="/notifications"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
+                isActive('/notifications')
+                  ? 'bg-[#EEF2FF] text-[#155DFC]'
+                  : 'text-[#45556C] hover:bg-slate-50'
+              }`}
             >
               <svg
                 width="18"
@@ -235,57 +248,78 @@ const ChatSidebar = ({ showUserProfile = false }) => {
         </div>
       </div>
 
-      {/* Footer - User Info */}
-      <div className="flex items-center gap-3 px-2 pt-4 border-t border-slate-100">
-        <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
+      {/* Footer - User Info, Profile Link & Logout */}
+      <div className="flex flex-col gap-1 border-t border-slate-100 pt-2">
+        <Link
+          to="/profile"
+          className={`flex items-center gap-3 px-2 py-2 rounded-xl transition-colors ${
+            location.pathname === '/profile'
+              ? 'bg-[#EEF2FF] text-[#155DFC]'
+              : 'hover:bg-slate-50 text-[#1D293D]'
+          }`}
+          title="Buka Profil"
+        >
+          <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center shrink-0">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                stroke="#62748E"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                stroke="#62748E"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-[13px] truncate">
+              {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'shadcn'}
+            </p>
+            <p className="font-normal text-[11px] text-[#62748E] truncate">
+              {user?.email || 'm@example.com'}
+            </p>
+          </div>
           <svg
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
-              stroke="#62748E"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+              d="M6 9L12 15L18 9"
               stroke="#62748E"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[13px] text-[#1D293D] truncate">
-            {user?.user_metadata?.full_name || 'shadcn'}
-          </p>
-          <p className="font-normal text-[11px] text-[#62748E] truncate">
-            {user?.email || 'm@example.com'}
-          </p>
-        </div>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+        </Link>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors w-full cursor-pointer group"
+          title="Keluar dari akun pencari kerja"
         >
-          <path
-            d="M6 9L12 15L18 9"
-            stroke="#62748E"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+          <LogOut className="w-3.5 h-3.5 text-red-500 group-hover:-translate-x-0.5 transition-transform" />
+          <span>Keluar Akun</span>
+        </button>
       </div>
-    </aside>
+    </div>
+  </aside>
   );
 };
 
