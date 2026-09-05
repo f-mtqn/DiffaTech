@@ -1,7 +1,7 @@
 <div align="center">
   
-  # [NAMA PROYEK] 
-  ### [Tagline Singkat dan Menarik]
+  # DiffaTech
+  ### Empowering Different Abilities in the Digital World
   
   [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-success?style=for-the-badge)](https://[URL_DEMO])
   [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://[URL_REPO])
@@ -9,7 +9,7 @@
   
   **Submission for ITECHNO CUP 2026 - Web Development**
   
-  **By [Nama Tim]**
+  **By BitTrio**
   
 </div>
 
@@ -25,8 +25,7 @@
 - [Instalasi & Setup](#-instalasi--setup)
 - [Penggunaan](#-penggunaan)
 - [API Documentation](#-api-documentation)
-- [Testing](#-testing)
-- [Tim Developer](#-tim-pengembang)
+- [Tim Developer](#-tim-developer)
 - [Lisensi](#-lisensi)
 
 ---
@@ -45,17 +44,17 @@
 
 ### Latar Belakang
 
-[Jelaskan konteks permasalahan yang ingin diselesaikan. Gunakan data atau fakta untuk memperkuat argumen. Contoh: "Berdasarkan survei X, 70% pengguna mengalami kesulitan dalam..."]
+Sektor teknologi berkembang pesat, namun inklusivitas bagi penyandang disabilitas masih tertinggal. Berdasarkan data **BPS (2023)**, tingkat partisipasi angkatan kerja disabilitas hanya **44%**, jauh di bawah non-disabilitas (69%). Hambatan utama pada platform karir konvensional adalah kurangnya fitur aksesibilitas (WCAG) dan minimnya informasi mengenai fasilitas pendukung di tempat kerja. **DiffaTech** hadir untuk memutus rantai diskriminasi ini di industri IT.
 
 ### Solusi yang Ditawarkan
 
-[Jelaskan bagaimana aplikasi ini menyelesaikan masalah tersebut dengan pendekatan yang unik atau inovatif]
+**DiffaTech** adalah platform *professional networking* dan lowongan kerja khusus bidang IT yang dirancang dengan pendekatan **Accessibility-First**. Kami menghubungkan talenta disabilitas berbakat dengan perusahaan inklusif melalui fitur filtrasi kebutuhan khusus, verifikasi fasilitas kantor, dan antarmuka yang ramah bagi pengguna dengan berbagai keterbatasan.
 
 ### Tujuan Proyek
 
-- 🎯 **Tujuan Utama**: [Tujuan primer aplikasi]
-- 📊 **Target Pengguna**: [Siapa yang akan menggunakan aplikasi ini]
-- 💡 **Value Proposition**: [Apa yang membuat aplikasi ini berbeda dari solusi lain]
+- 🎯 **Tujuan Utama**: Menciptakan ekosistem karir digital yang inklusif untuk mendukung target **SDG 8** (Pekerjaan Layak dan Pertumbuhan Ekonomi).
+- 📊 **Target Pengguna**: Talenta IT disabilitas (Developer, Designer, dll) dan Perusahaan IT yang menjunjung tinggi inklusivitas.
+- 💡 **Value Proposition**: Platform pertama di Indonesia yang mengkombinasikan spesialisasi industri IT dengan standar aksesibilitas digital (WCAG) dan fitur ramah disleksia.
 
 ---
 
@@ -65,42 +64,19 @@
 
 | Fitur | Deskripsi | Keunggulan |
 |----------|--------------|---------------|
-| **[Nama Fitur 1]** | [Deskripsi singkat fitur] | [Mengapa fitur ini penting/unik] |
-| **[Nama Fitur 2]** | [Deskripsi singkat fitur] | [Mengapa fitur ini penting/unik] |
-| **[Nama Fitur 3]** | [Deskripsi singkat fitur] | [Mengapa fitur ini penting/unik] |
-| **[Nama Fitur 4]** | [Deskripsi singkat fitur] | [Mengapa fitur ini penting/unik] |
+| **Inclusive Job Matching** | Filter lowongan berdasarkan jenis disabilitas dan fasilitas pendukung. | Memastikan pelamar menemukan lingkungan kerja yang sesuai kebutuhan spesifik mereka. |
+| **Dyslexia-Friendly Mode** | Pengaturan antarmuka khusus (font & spasi) untuk pengguna disleksia. | Meningkatkan keterbacaan dan kenyamanan navigasi bagi pengguna neurodivergent. |
+| **Verified Inclusive Badge** | Label verifikasi untuk perusahaan yang terbukti inklusif. | Memberikan rasa aman dan kepercayaan tinggi bagi para pencari kerja disabilitas. |
+| **Accessibility-First UI** | Antarmuka yang dioptimasi untuk *screen reader* dan navigasi keyboard. | Menghilangkan hambatan teknis saat proses pencarian dan pelamaran kerja. |
 
 ### Fitur Tambahan
 
-- **[Fitur A]** - [Penjelasan singkat]
-- **[Fitur B]** - [Penjelasan singkat]
-- **[Fitur C]** - [Penjelasan singkat]
-- **[Fitur D]** - [Penjelasan singkat]
+- **Chat HRD Terintegrasi** - Komunikasi langsung antara kandidat dan rekruter untuk transparansi proses.
+- **Accessibility Reviews** - Ulasan perusahaan dari sudut pandang karyawan disabilitas tentang fasilitas nyata di kantor.
+- **Voice Search** - Pencarian lowongan menggunakan perintah suara untuk memudahkan pengguna dengan gangguan motorik.
+- **Inclusive Resume Builder** - Pembuatan CV otomatis yang menonjolkan keahlian IT tanpa mengesampingkan kebutuhan aksesibilitas.
 
----
 
-## 📸 Demo & Screenshot
-
-### Live Demo
-
-🔗 **[Kunjungi Website](https://[URL_DEMO])**
-
-### Screenshot Aplikasi
-
-<div align="center">
-  <img src="[URL_SCREENSHOT_1]" alt="Homepage" width="800"/>
-  <p><em>Homepage - Tampilan utama aplikasi</em></p>
-  
-  <img src="[URL_SCREENSHOT_2]" alt="Dashboard" width="800"/>
-  <p><em>Dashboard - Panel kontrol pengguna</em></p>
-  
-  <img src="[URL_SCREENSHOT_3]" alt="Feature" width="800"/>
-  <p><em>[Nama Fitur] - [Deskripsi screenshot]</em></p>
-</div>
-
-### Video Demo
-
-📹 **[Link Video Demo](https://[URL_VIDEO])** _(opsional)_
 
 ---
 
@@ -110,36 +86,33 @@
 
 #### Frontend
 ```
-Framework    : [React / Next.js / Vue / dll]
-UI Library   : [Tailwind CSS / Material-UI / Chakra UI / dll]
-State Mgmt   : [Redux / Zustand / Context API / dll]
-Validation   : [Zod / Yup / React Hook Form / dll]
+Framework      : React 
+Styling        : Tailwind CSS
+UI Components  : Schadcn/UI & Lucide React
+Form Handling  : React Hook Form & Zod
 ```
 
 #### Backend
 ```
-Runtime      : [Node.js / Bun / Deno / dll]
-Framework    : [Express / Fastify / Hono / dll]
-Database     : [PostgreSQL / MongoDB / MySQL / dll]
-ORM          : [Prisma / Drizzle / TypeORM / dll]
-Auth         : [JWT / NextAuth / Clerk / dll]
+Database     : PostgreSQL
+ORM          : Prisma
+Auth         : NextAuth
 ```
 
 #### DevOps & Tools
 ```
-Deployment   : [Vercel / Netlify / Railway / dll]
-CI/CD        : [GitHub Actions / Vercel / dll]
-Testing      : [Jest / Vitest / Playwright / dll]
-Monitoring   : [Sentry / LogRocket / dll]
+Deployment     : Vercel
+Package Manager: npm
 ```
 
 ### Alasan Pemilihan Teknologi
 
 | Teknologi | Alasan Pemilihan |
 |-----------|------------------|
-| **[Tech 1]** | [Jelaskan mengapa memilih teknologi ini, keunggulannya untuk proyek ini] |
-| **[Tech 2]** | [Jelaskan mengapa memilih teknologi ini, keunggulannya untuk proyek ini] |
-| **[Tech 3]** | [Jelaskan mengapa memilih teknologi ini, keunggulannya untuk proyek ini] |
+| **Next.js** | Mendukung SSR untuk SEO yang lebih baik dan performa aksesibilitas yang cepat. |
+| **Tailwind CSS** | Memudahkan kustomisasi tema untuk fitur High Contrast dan Dyslexia-friendly mode. |
+| **PostgreSQL & Prisma** | Menjamin integritas data yang kompleks untuk relasi lowongan dan profil kandidat. |
+
 
 ### Dependencies Utama
 
@@ -172,18 +145,24 @@ Monitoring   : [Sentry / LogRocket / dll]
 ### Folder Structure
 
 ```
-project-root/
+DiffaTech/
+├── prisma/                 # Skema Database (Prisma ORM)
+├── public/                 # Aset statis (logo, gambar disabilitas)
 ├── src/
-│   ├── components/     # Reusable components
-│   ├── pages/          # Page components
-│   ├── hooks/          # Custom hooks
-│   ├── utils/          # Utility functions
-│   ├── services/       # API services
-│   ├── store/          # State management
-│   └── types/          # TypeScript types
-├── public/             # Static assets
-├── tests/              # Test files
-└── docs/               # Documentation
+│   ├── app/                # Routing Utama (Next.js App Router)
+│   │   ├── (auth)/         # Grouping Login & Register
+│   │   ├── (dashboard)/    # Grouping Dashboard User & Recruiter
+│   │   ├── cari-lowongan/  # Halaman pencarian kerja
+│   │   └── api/            # API Endpoints (jika tidak pakai Server Actions)
+│   ├── components/
+│   │   ├── ui/             # Komponen dasar Shadcn (Button, Input, Card, dll)
+│   │   ├── shared/         # Komponen global (Navbar, Sidebar, Footer)
+│   │   └── parts/          # Komponen spesifik fitur (JobCard, FilterBar)
+│   ├── hooks/              # Custom hooks (useMobile, useAccessibility)
+│   ├── lib/                # Konfigurasi utilitas (utils.ts, prisma.ts)
+│   └── types/              # Definisi TypeScript interface
+├── tailwind.config.js      # Konfigurasi desain (warna utama DiffaTech)
+└── package.json            # Daftar dependensi utama
 ```
 
 ---
@@ -194,30 +173,23 @@ project-root/
 
 Pastikan Anda telah menginstall:
 - **Node.js** (v18.x atau lebih tinggi)
-- **npm** / **yarn** / **pnpm**
-- **[Database]** (jika diperlukan)
-- **Git**
+- **npm** atau **pnpm**
+- **PostgreSQL** (Lokal atau Cloud seperti Supabase)
+
 
 ### Langkah Instalasi
 
 #### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/[username]/[repo-name].git
-cd [repo-name]
+git clone https://github.com/f-mtqn/DiffaTech.git
+cd DiffaTech
 ```
 
 #### 2️⃣ Install Dependencies
 
 ```bash
-# Menggunakan npm
 npm install
-
-# Atau menggunakan yarn
-yarn install
-
-# Atau menggunakan pnpm
-pnpm install
 ```
 
 #### 3️⃣ Setup Environment Variables
@@ -225,19 +197,9 @@ pnpm install
 Buat file `.env` di root directory:
 
 ```env
-# Database
-DATABASE_URL="[connection_string]"
-
-# Authentication
-JWT_SECRET="[your_jwt_secret]"
-NEXTAUTH_SECRET="[your_nextauth_secret]"
-
-# API Keys
-API_KEY="[your_api_key]"
-
-# Other configs
-NODE_ENV="development"
-PORT=3000
+# .env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 #### 4️⃣ Setup Database
@@ -272,9 +234,6 @@ npm run dev
 npm run build
 npm run start
 
-# Run tests
-npm run test
-
 # Linting
 npm run lint
 ```
@@ -283,15 +242,23 @@ npm run lint
 
 #### Untuk Pengguna Umum
 
-1. **Registrasi/Login**: [Jelaskan cara mendaftar atau login]
-2. **[Fitur 1]**: [Jelaskan cara menggunakan fitur ini]
-3. **[Fitur 2]**: [Jelaskan cara menggunakan fitur ini]
+1. **Registrasi/Login**: Kunjungi halaman utama dan klik tombol "Daftar". Masukkan nama lengkap, email, dan password.
+Jika sudah memiliki akun, klik "Masuk" dan gunakan email serta password terdaftar untuk mengakses dashboard.
+2. **Pencarian Lowongan Inklusif**: Masuk ke menu "Cari Lowongan". Gunakan fitur pencarian di bagian atas untuk mencari posisi IT spesifik (contoh: "Frontend Developer").
+Gunakan panel Filter di sisi kiri untuk menyaring pekerjaan berdasarkan rentang gaji, lokasi, sistem kerja (Remote/Full-time), serta kategori ramah disabilitas tertentu.
+3. **Update Profil & Resume**: Klik menu "Update Profile" untuk melengkapi data diri, pengalaman kerja, dan pendidikan.
+Penting: Pastikan mengisi bagian "Disabilitas" agar sistem dapat memberikan rekomendasi lowongan yang paling sesuai dengan kebutuhan aksesibilitas Anda. Unggah CV dan sertifikat pendukung untuk menarik perhatian rekruter.
 
 #### Untuk Admin
 
-1. **Akses Admin Panel**: [Jelaskan cara mengakses]
-2. **[Fungsi Admin 1]**: [Jelaskan cara menggunakan]
-3. **[Fungsi Admin 2]**: [Jelaskan cara menggunakan]
+1. **Akses Dashboard Rekruter**: Masuk menggunakan akun perusahaan melalui tombol "Daftar Perusahaan" atau login khusus rekruter.
+Setelah login, Anda akan diarahkan ke Dashboard Utama yang menampilkan ringkasan jumlah pelamar, lowongan aktif, dan kandidat yang sedang diproses.
+2. **Posting Lowongan Kerja Baru**: Pilih menu "Posting Lowongan Baru" di sidebar.
+Isi detail pekerjaan meliputi Nama Posisi, Deskripsi, Jobdesk, serta kriteria minimum.
+Tentukan jenis disabilitas yang dapat diakomodasi dan fasilitas pendukung yang tersedia di kantor Anda, lalu klik "Posting Kerja".
+3. **Manajemen Pelamar & Seleksi**: Buka menu "Daftar Kandidat Saya" untuk melihat daftar pelamar pada setiap lowongan.
+Klik "Lihat Kandidat" pada nama pelamar untuk meninjau detail profil, skill, dan sertifikat mereka secara mendalam.
+Gunakan fitur "Chat HRD" untuk berinteraksi langsung dengan kandidat terpilih untuk proses interview lebih lanjut.
 
 ---
 
@@ -339,8 +306,6 @@ const response = await fetch('/api/auth/login', {
 });
 ```
 
-📖 **[Dokumentasi API Lengkap](./docs/API.md)** _(opsional)_
-
 ---
 
 ## 🧪 Testing
@@ -380,7 +345,7 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 
 <div align="center">
 
-  **Made with ❤️ by [Nama Tim] for ITECHNO CUP 2026**
+  **Made with ❤️ by BitTrio for ITECHNO CUP 2026**
 
   
 </div>
