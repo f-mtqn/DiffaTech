@@ -676,6 +676,11 @@ export default function JobDetail() {
                 />
               </div>
 
+              {/* Info Bebas Syarat & Review Manual */}
+              <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-100 text-[11px] text-blue-800 leading-relaxed">
+                ✨ <strong>Lamaran Langsung:</strong> Anda dapat langsung melamar tanpa syarat yang rumit. Tim HRD dari <strong>{job.company_name}</strong> akan meninjau profil dan portofolio Anda secara manual.
+              </div>
+
               {/* Actions */}
               <div className="flex items-center justify-end gap-2.5 pt-2">
                 <button

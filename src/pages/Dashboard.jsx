@@ -38,6 +38,27 @@ const Dashboard = () => {
     loadJobs();
   }, [searchQuery, filters]);
 
+  // Load status lamaran yang sudah pernah dikirim oleh user
+  useEffect(() => {
+    if (user?.id) {
+      loadMyApplications();
+    }
+  }, [user?.id]);
+
+  const loadMyApplications = async () => {
+    try {
+      const { data } = await supabase
+        .from('applications')
+        .select('job_id')
+        .eq('applicant_id', user.id);
+      if (data) {
+        setAppliedJobs(new Set(data.map((a) => a.job_id)));
+      }
+    } catch (err) {
+      console.warn('Failed loading applied jobs status:', err);
+    }
+  };
+
   const loadJobs = async () => {
     setLoading(true);
     try {

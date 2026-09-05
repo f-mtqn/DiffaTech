@@ -129,12 +129,28 @@ export async function applyToJob({ jobId, applicantId, coverNote = '' }) {
       status: 'review',
     }])
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     // Jika unique constraint error, berarti sudah pernah melamar
     if (error.code === '23505') {
       return { id: null, alreadyApplied: true };
+    }
+    // Fallback status 'pending' jika ada cache constraint lama
+    try {
+      const fallback = await supabase
+        .from('applications')
+        .insert([{
+          job_id: jobId,
+          applicant_id: applicantId,
+          cover_letter: coverNote,
+          status: 'pending',
+        }])
+        .select()
+        .maybeSingle();
+      if (fallback.data) return fallback.data;
+    } catch (fbErr) {
+      console.warn('Fallback apply insert warning:', fbErr);
     }
     throw error;
   }
