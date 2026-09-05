@@ -58,22 +58,40 @@ export default function CompanyProfile() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // Load existing data from user metadata
+  // Load existing data from company_profiles table + user metadata
   useEffect(() => {
-    if (user) {
-      const meta = user.user_metadata || {};
-      setCompanyName(meta.company_name || '');
-      setEmailField(user.email || '');
-      setDescription(meta.description || '');
-      setAddress(meta.address || '');
-      setWebsite(meta.website || '');
-      setLogoUrl(meta.logo_url || '');
-      setIndustries(meta.industries?.length ? meta.industries : ['Teknologi Informasi', 'Rekrutmen']);
-      setLinkedin(meta.social_media?.linkedin || '');
-      setYoutube(meta.social_media?.youtube || '');
-      setInstagram(meta.social_media?.instagram || '');
-      setTwitter(meta.social_media?.twitter || '');
-    }
+    if (!user) return;
+    const meta = user.user_metadata || {};
+    // Set initial values from user_metadata
+    setCompanyName(meta.company_name || '');
+    setEmailField(user.email || '');
+    setDescription(meta.description || '');
+    setAddress(meta.address || '');
+    setWebsite(meta.website || '');
+    setLogoUrl(meta.logo_url || '');
+    setIndustries(meta.industries?.length ? meta.industries : ['Teknologi Informasi', 'Rekrutmen']);
+    setLinkedin(meta.social_media?.linkedin || '');
+    setYoutube(meta.social_media?.youtube || '');
+    setInstagram(meta.social_media?.instagram || '');
+    setTwitter(meta.social_media?.twitter || '');
+
+    // Also try to load from company_profiles table (override if exists)
+    supabase.from('company_profiles').select('*').eq('id', user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          if (data.company_name) setCompanyName(data.company_name);
+          if (data.description) setDescription(data.description);
+          if (data.address) setAddress(data.address);
+          if (data.website) setWebsite(data.website);
+          if (data.logo_url) setLogoUrl(data.logo_url);
+          if (data.industries?.length) setIndustries(data.industries);
+          if (data.social_media?.linkedin) setLinkedin(data.social_media.linkedin);
+          if (data.social_media?.youtube) setYoutube(data.social_media.youtube);
+          if (data.social_media?.instagram) setInstagram(data.social_media.instagram);
+          if (data.social_media?.twitter) setTwitter(data.social_media.twitter);
+        }
+      })
+      .catch(() => {});
   }, [user]);
 
   const handleAddIndustry = () => setIndustries([...industries, '']);
@@ -92,7 +110,10 @@ export default function CompanyProfile() {
     setSaving(true);
     try {
       const cleanIndustries = industries.map((i) => i.trim()).filter(Boolean);
-      const { error } = await supabase.auth.updateUser({
+      const socialMedia = { linkedin, youtube, instagram, twitter };
+
+      // 1. Update Supabase Auth user_metadata
+      const { error: authErr } = await supabase.auth.updateUser({
         data: {
           company_name: companyName,
           description,
@@ -100,10 +121,24 @@ export default function CompanyProfile() {
           website,
           logo_url: logoUrl,
           industries: cleanIndustries,
-          social_media: { linkedin, youtube, instagram, twitter },
+          social_media: socialMedia,
         },
       });
-      if (error) throw error;
+      if (authErr) throw authErr;
+
+      // 2. Sync ke tabel company_profiles
+      await supabase.from('company_profiles').upsert({
+        id: user.id,
+        company_name: companyName,
+        description,
+        address,
+        website,
+        logo_url: logoUrl,
+        industries: cleanIndustries,
+        social_media: socialMedia,
+        updated_at: new Date().toISOString(),
+      });
+
       setToast('Profil perusahaan berhasil disimpan!');
     } catch {
       setToast('Gagal menyimpan profil. Coba lagi.');

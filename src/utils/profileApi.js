@@ -15,8 +15,8 @@ export async function loadJobSeekerProfile(userId) {
     { data: certifications },
     { data: skills },
   ] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', userId).single(),
-    supabase.from('job_seeker_profiles').select('*').eq('id', userId).single(),
+    supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+    supabase.from('job_seeker_profiles').select('*').eq('id', userId).maybeSingle(),
     supabase.from('experiences').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
     supabase.from('certifications').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
     supabase.from('user_skills').select('*').eq('user_id', userId).order('created_at', { ascending: true }),
@@ -152,9 +152,9 @@ export async function loadJobListings({ search = '', jobType = null } = {}) {
 export async function applyToJob(userId, jobId, coverLetter = '') {
   const { data, error } = await supabase
     .from('applications')
-    .insert({ job_id: jobId, applicant_id: userId, cover_letter: coverLetter })
+    .insert({ job_id: jobId, applicant_id: userId, cover_letter: coverLetter, status: 'review' })
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
   return data;

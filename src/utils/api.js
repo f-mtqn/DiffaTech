@@ -105,7 +105,7 @@ export async function deleteJob(id) {
 
 /** Lamar pekerjaan — mudah, lancar & tanpa kendala FK */
 export async function applyToJob({ jobId, applicantId, coverNote = '' }) {
-  // 1. Pastikan record profil ada di profiles & job_seeker_profiles agar FK tidak gagal
+  // 1. Pastikan record profil ada agar FK tidak gagal
   try {
     await supabase.from('profiles').upsert({ id: applicantId, role: 'job_seeker' }, { onConflict: 'id', ignoreDuplicates: true });
     await supabase.from('job_seeker_profiles').upsert({ id: applicantId }, { onConflict: 'id', ignoreDuplicates: true });
@@ -129,17 +129,14 @@ export async function applyToJob({ jobId, applicantId, coverNote = '' }) {
       status: 'review',
     }])
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
-    // Jika unique constraint error, berarti sudah pernah melamar
-    if (error.code === '23505') {
-      return { id: null, alreadyApplied: true };
-    }
+    if (error.code === '23505') return { id: null, alreadyApplied: true };
     throw error;
   }
 
-  // 4. Kirim notifikasi otomatis ke pihak HRD / Perusahaan
+  // 4. Kirim notifikasi ke HRD / Perusahaan
   try {
     const { data: jobData } = await supabase
       .from('job_listings')
@@ -147,7 +144,7 @@ export async function applyToJob({ jobId, applicantId, coverNote = '' }) {
       .eq('id', jobId)
       .single();
 
-    if (jobData && jobData.company_id) {
+    if (jobData?.company_id) {
       await createNotification({
         userId: jobData.company_id,
         title: 'Pelamar Baru Diterima',
@@ -230,6 +227,16 @@ export async function fetchJobApplicants(jobId) {
 
 /** Fetch semua pelamar untuk semua job milik company */
 export async function fetchAllCompanyApplicants(companyId) {
+  // Step 1: ambil semua job_id milik company (aktif maupun tidak)
+  const { data: companyJobs, error: jobErr } = await supabase
+    .from('job_listings')
+    .select('id')
+    .eq('company_id', companyId);
+  if (jobErr) throw jobErr;
+  if (!companyJobs || companyJobs.length === 0) return [];
+  const jobIds = companyJobs.map((j) => j.id);
+
+  // Step 2: ambil applications hanya untuk job-job tersebut
   const { data, error } = await supabase
     .from('applications')
     .select(`
@@ -242,13 +249,10 @@ export async function fetchAllCompanyApplicants(companyId) {
       ),
       job_listings!job_id (id, title, company_id)
     `)
+    .in('job_id', jobIds)
     .order('applied_at', { ascending: false });
   if (error) throw error;
-  // Filter hanya job milik company ini
-  const filtered = (data || []).filter(
-    (app) => app.job_listings?.company_id === companyId
-  );
-  return filtered;
+  return data || [];
 }
 
 /** Update status lamaran (terima/tolak) */
@@ -542,6 +546,28 @@ export async function upsertJobSeekerProfile(userId, profileData) {
     .upsert({ id: userId, ...profileData, updated_at: new Date().toISOString() });
   if (error) throw error;
 }
+
+// ============================================
+// COMPANY PROFILE
+// ============================================
+
+export async function fetchCompanyProfile(companyId) {
+  const { data, error } = await supabase
+    .from('company_profiles')
+    .select('*')
+    .eq('id', companyId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function upsertCompanyProfile(companyId, profileData) {
+  const { error } = await supabase
+    .from('company_profiles')
+    .upsert({ id: companyId, ...profileData, updated_at: new Date().toISOString() });
+  if (error) throw error;
+}
+
 
 // ============================================
 // FORMAT HELPERS
