@@ -22,6 +22,7 @@ const EditJob = () => {
     salary_max: '',
     deadline: '',
     description: '',
+    skills: '',
     disability_support: '',
     disabilitas: [],
   });
@@ -60,6 +61,7 @@ const EditJob = () => {
         salary_max: data.salary_max ? String(data.salary_max) : '',
         deadline: data.deadline ? data.deadline.split('T')[0] : '',
         description: data.description || '',
+        skills: data.skills ? data.skills.join(', ') : '',
         disability_support: data.disability_support || '',
         disabilitas,
       });
@@ -95,6 +97,9 @@ const EditJob = () => {
       const gajiMin = parseInt(form.salary_min) || 0;
       const gajiMax = parseInt(form.salary_max) || 0;
       const gajiFmt = gajiMin ? `Rp ${gajiMin.toLocaleString('id-ID')} / bln` : '-';
+      const skillsArr = form.skills
+        ? form.skills.split(',').map((s) => s.trim()).filter(Boolean)
+        : [];
 
       await updateJob(id, {
         title: form.title,
@@ -106,6 +111,7 @@ const EditJob = () => {
         salary_max: gajiMax,
         deadline: form.deadline || null,
         description: form.description,
+        skills: skillsArr,
         disability_support: form.disabilitas.length > 0 ? form.disabilitas.join(' & ') : null,
         updated_at: new Date().toISOString(),
       });
@@ -233,6 +239,38 @@ const EditJob = () => {
               <textarea name="description" value={form.description} onChange={handleChange} rows={5}
                 placeholder="Jelaskan tanggung jawab, kualifikasi, dan benefit..."
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 resize-none" />
+            </div>
+
+            {/* Skills */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Skills yang Dibutuhkan</label>
+              <input
+                type="text"
+                name="skills"
+                value={form.skills}
+                onChange={handleChange}
+                placeholder="cth: Figma, React, Illustrator (pisahkan dengan koma)"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 placeholder-gray-400"
+              />
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap text-xs text-gray-500">
+                <span className="text-[11px] font-medium text-gray-400">Pilih cepat:</span>
+                {['Figma', 'React', 'JavaScript', 'UI/UX Design', 'Desain Grafis', 'Copywriting', 'Komunikasi', 'Data Entry', 'Microsoft Excel'].map((sk) => (
+                  <button
+                    key={sk}
+                    type="button"
+                    onClick={() => {
+                      const existing = form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+                      if (!existing.includes(sk)) {
+                        const updated = [...existing, sk].join(', ');
+                        setForm(prev => ({ ...prev, skills: updated }));
+                      }
+                    }}
+                    className="text-[11px] bg-gray-100 hover:bg-blue-50 hover:text-blue-600 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                  >
+                    + {sk}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Disabilitas Support */}

@@ -62,7 +62,9 @@ const CompanyPostJob = () => {
         ? `Rp ${gajiMinNum.toLocaleString('id-ID')} / bln`
         : '-';
 
-      const companyMeta = user?.user_metadata || {};
+      const skillsArr = form.skills
+        ? form.skills.split(',').map((s) => s.trim()).filter(Boolean)
+        : [];
 
       await postJob({
         company_id: user.id,
@@ -78,6 +80,7 @@ const CompanyPostJob = () => {
         description: form.deskripsi,
         disability_support: form.disabilitas.length > 0 ? form.disabilitas.join(' & ') : null,
         job_types: form.tipePekerjaan ? [form.tipePekerjaan] : [],
+        skills: skillsArr,
         company_logo_letter: (companyMeta.company_name || 'P').charAt(0).toUpperCase(),
         company_verified: false,
         is_active: true,
@@ -242,9 +245,28 @@ const CompanyPostJob = () => {
                   name="skills"
                   value={form.skills}
                   onChange={handleChange}
-                  placeholder="cth: Figma, React, Illustrator"
+                  placeholder="cth: Figma, React, Illustrator (pisahkan dengan koma)"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 placeholder-gray-400"
                 />
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap text-xs text-gray-500">
+                  <span className="text-[11px] font-medium text-gray-400">Pilih cepat:</span>
+                  {['Figma', 'React', 'JavaScript', 'UI/UX Design', 'Desain Grafis', 'Copywriting', 'Komunikasi', 'Data Entry', 'Microsoft Excel'].map((sk) => (
+                    <button
+                      key={sk}
+                      type="button"
+                      onClick={() => {
+                        const existing = form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+                        if (!existing.includes(sk)) {
+                          const updated = [...existing, sk].join(', ');
+                          setForm(prev => ({ ...prev, skills: updated }));
+                        }
+                      }}
+                      className="text-[11px] bg-gray-100 hover:bg-blue-50 hover:text-blue-600 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                    >
+                      + {sk}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

@@ -100,24 +100,23 @@ const Dashboard = () => {
 
   const handleApply = async (job) => {
     if (!user) {
-      showToast('Silakan login terlebih dahulu untuk melamar.');
+      showToast('Silakan login terlebih dahulu untuk melamar.', 'error');
       return;
     }
     if (appliedJobs.has(job.id)) return;
 
     setApplying(job.id);
     try {
-      const alreadyApplied = await checkAlreadyApplied(job.id, user.id);
-      if (alreadyApplied) {
-        setAppliedJobs((prev) => new Set([...prev, job.id]));
-        showToast(`Kamu sudah pernah melamar untuk "${job.title}".`);
-        return;
-      }
-      await applyToJob({ jobId: job.id, applicantId: user.id, coverNote: '' });
+      const res = await applyToJob({ jobId: job.id, applicantId: user.id, coverNote: '' });
       setAppliedJobs((prev) => new Set([...prev, job.id]));
-      showToast(`Lamaran untuk "${job.title}" berhasil dikirim! Silakan pantau di Lamaran Saya.`);
+      if (res?.alreadyApplied) {
+        showToast(`Lamaran untuk "${job.title}" sudah terdaftar sebelumnya.`, 'success');
+      } else {
+        showToast(`Lamaran untuk "${job.title}" berhasil dikirim! Silakan pantau di Lamaran Saya.`, 'success');
+      }
     } catch (err) {
-      showToast('Gagal mengirim lamaran. Coba lagi.');
+      console.error('Apply error:', err);
+      showToast('Gagal mengirim lamaran. Coba lagi.', 'error');
     } finally {
       setApplying(null);
     }
@@ -250,12 +249,25 @@ const Dashboard = () => {
                           {job.work_type}
                         </span>
                         {job.disability_support && (
-                          <span className="flex items-center gap-1.5 text-[12px] text-[#62748E]">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#62748E" strokeWidth="2"/><circle cx="12" cy="12" r="4" stroke="#62748E" strokeWidth="2"/></svg>
-                            {job.disability_support}
+                          <span className="flex items-center gap-1.5 text-[12px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                            ♿ {job.disability_support}
                           </span>
                         )}
                       </div>
+
+                      {/* Skills Chips */}
+                      {job.skills && job.skills.length > 0 && (
+                        <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
+                          {job.skills.slice(0, 5).map((sk, idx) => (
+                            <span key={idx} className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                              {sk}
+                            </span>
+                          ))}
+                          {job.skills.length > 5 && (
+                            <span className="text-[10px] text-gray-400">+{job.skills.length - 5}</span>
+                          )}
+                        </div>
+                      )}
 
                       <p className="mt-3 font-normal text-[14px] leading-[22.75px] text-[#62748E] line-clamp-2">
                         {job.description}

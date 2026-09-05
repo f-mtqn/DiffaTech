@@ -72,11 +72,29 @@ export async function updateJob(id, updates) {
   return data;
 }
 
-/** Hapus/nonaktifkan lowongan */
-export async function deactivateJob(id) {
+/** Ubah status aktif / non-aktif lowongan */
+export async function toggleJobActive(id, isActive) {
+  const { data, error } = await supabase
+    .from('job_listings')
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/** Hapus permanen lowongan beserta keterkaitannya */
+export async function deleteJob(id) {
+  try {
+    await supabase.from('job_skills').delete().eq('job_id', id);
+    await supabase.from('applications').delete().eq('job_id', id);
+  } catch (err) {
+    console.warn('Pre-delete cleanup warning:', err);
+  }
   const { error } = await supabase
     .from('job_listings')
-    .update({ is_active: false })
+    .delete()
     .eq('id', id);
   if (error) throw error;
 }
@@ -85,8 +103,23 @@ export async function deactivateJob(id) {
 // APPLICATIONS (LAMARAN)
 // ============================================
 
-/** Lamar pekerjaan */
+/** Lamar pekerjaan — mudah, lancar & tanpa kendala FK */
 export async function applyToJob({ jobId, applicantId, coverNote = '' }) {
+  // 1. Pastikan record profil ada di profiles & job_seeker_profiles agar FK tidak gagal
+  try {
+    await supabase.from('profiles').upsert({ id: applicantId, role: 'job_seeker' }, { onConflict: 'id', ignoreDuplicates: true });
+    await supabase.from('job_seeker_profiles').upsert({ id: applicantId }, { onConflict: 'id', ignoreDuplicates: true });
+  } catch (syncErr) {
+    console.warn('Silent profile sync warning:', syncErr);
+  }
+
+  // 2. Cek apakah sudah pernah melamar
+  const already = await checkAlreadyApplied(jobId, applicantId);
+  if (already) {
+    return { id: null, alreadyApplied: true };
+  }
+
+  // 3. Masukkan lamaran ke tabel applications
   const { data, error } = await supabase
     .from('applications')
     .insert([{
@@ -97,20 +130,56 @@ export async function applyToJob({ jobId, applicantId, coverNote = '' }) {
     }])
     .select()
     .single();
-  if (error) throw error;
+
+  if (error) {
+    // Jika unique constraint error, berarti sudah pernah melamar
+    if (error.code === '23505') {
+      return { id: null, alreadyApplied: true };
+    }
+    throw error;
+  }
+
+  // 4. Kirim notifikasi otomatis ke pihak HRD / Perusahaan
+  try {
+    const { data: jobData } = await supabase
+      .from('job_listings')
+      .select('company_id, title')
+      .eq('id', jobId)
+      .single();
+
+    if (jobData && jobData.company_id) {
+      await createNotification({
+        userId: jobData.company_id,
+        title: 'Pelamar Baru Diterima',
+        message: `Kandidat baru melamar posisi "${jobData.title}". Segera tinjau profilnya.`,
+        type: 'application',
+        category: 'Lamaran Masuk',
+        actionText: 'Lihat Pelamar',
+        actionLink: `/company-applicants?job=${jobId}`,
+      });
+    }
+  } catch (notifErr) {
+    console.warn('Notifikasi perusahaan gagal:', notifErr);
+  }
+
   return data;
 }
 
 /** Cek apakah user sudah melamar ke job ini */
 export async function checkAlreadyApplied(jobId, applicantId) {
-  const { data, error } = await supabase
-    .from('applications')
-    .select('id')
-    .eq('job_id', jobId)
-    .eq('applicant_id', applicantId)
-    .maybeSingle();
-  if (error) throw error;
-  return !!data;
+  if (!jobId || !applicantId) return false;
+  try {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('id')
+      .eq('job_id', jobId)
+      .eq('applicant_id', applicantId)
+      .maybeSingle();
+    if (error) return false;
+    return !!data;
+  } catch (err) {
+    return false;
+  }
 }
 
 /** Fetch semua lamaran milik pencari kerja (dengan join job_listings) */
