@@ -8,7 +8,7 @@ import {
   ArrowLeft, Building2, MapPin, DollarSign, Briefcase,
   Clock, Calendar, GraduationCap, Users, CheckCircle2,
   MessageSquare, Share2, Sparkles, Send, ExternalLink,
-  ShieldCheck, HeartHandshake
+  ShieldCheck, HeartHandshake, XCircle
 } from 'lucide-react';
 
 export default function JobDetail() {
@@ -23,9 +23,11 @@ export default function JobDetail() {
   const [coverNote, setCoverNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [toastType, setToastType] = useState('success'); // 'success' | 'error'
 
-  const showToast = (msg) => {
+  const showToast = (msg, type = 'success') => {
     setToastMessage(msg);
+    setToastType(type);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
@@ -58,7 +60,7 @@ export default function JobDetail() {
   const handleSubmitApplication = async (e) => {
     e.preventDefault();
     if (!user) {
-      showToast('Silakan login terlebih dahulu.');
+      showToast('Silakan login terlebih dahulu.', 'error');
       setShowApplyModal(false);
       navigate('/login');
       return;
@@ -68,9 +70,9 @@ export default function JobDetail() {
       await applyToJob({ jobId: job.id, applicantId: user.id, coverNote });
       setShowApplyModal(false);
       setHasApplied(true);
-      showToast('Lamaran berhasil dikirim! Anda dapat memantau statusnya di Lamaran Saya.');
+      showToast('Lamaran berhasil dikirim! Pantau statusnya di Lamaran Saya.', 'success');
     } catch (err) {
-      showToast('Gagal mengirim lamaran. Mungkin kamu sudah pernah melamar posisi ini.');
+      showToast('Gagal mengirim lamaran. Kamu mungkin sudah pernah melamar posisi ini.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -385,8 +387,11 @@ export default function JobDetail() {
 
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-8 right-8 z-50 flex items-center gap-2.5 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl text-xs font-semibold">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className={`fixed bottom-8 right-8 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-xl text-xs font-semibold text-white ${toastType === 'error' ? 'bg-red-600' : 'bg-slate-900'}`}>
+          {toastType === 'error'
+            ? <XCircle className="w-4 h-4 text-red-200" />
+            : <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          }
           <span>{toastMessage}</span>
         </div>
       )}

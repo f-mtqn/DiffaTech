@@ -33,8 +33,6 @@ const Navbar = () => {
       </Link>
 
       <nav className="flex items-center gap-7">
-        <Link to="#" className="font-medium text-[14px] text-[#45556C]">Pelatihan &amp; Skil</Link>
-        <Link to="#" className="font-medium text-[14px] text-[#45556C]">Komunitas</Link>
         <Link to="/about" className="font-medium text-[14px] text-[#45556C] hover:text-[#155DFC] transition-colors">Tentang Kami</Link>
       </nav>
 

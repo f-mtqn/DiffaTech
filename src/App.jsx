@@ -23,6 +23,7 @@ import JobSeekerNotifications from './pages/JobSeekerNotifications';
 import CompanyNotifications from './pages/CompanyNotifications';
 import MyApplications from './pages/MyApplications';
 import JobDetail from './pages/JobDetail';
+import EditJob from './pages/EditJob';
 
 function App() {
   return (
@@ -80,6 +81,14 @@ function App() {
             element={
               <ProtectedRoute allowedRole="company">
                 <CompanyCandidateDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit-job/:id"
+            element={
+              <ProtectedRoute allowedRole="company">
+                <EditJob />
               </ProtectedRoute>
             }
           />

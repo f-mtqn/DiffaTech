@@ -155,9 +155,9 @@ export default function CompanyJobPostings() {
                     <Eye className="w-3.5 h-3.5" />Pelamar
                   </button>
                   <button
-                    onClick={() => navigate('/company-post-job')}
+                    onClick={() => navigate(`/edit-job/${job.id}`)}
                     className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors cursor-pointer"
-                    title="Edit"
+                    title="Edit Lowongan"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>

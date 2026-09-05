@@ -4,12 +4,17 @@ import Navbar from '../components/Navbar';
 import ChatSidebar from '../components/ChatSidebar';
 import { useAuth } from '../context/AuthContext';
 import { fetchChatRooms, timeAgo } from '../utils/api';
+import { supabase } from '../utils/supabaseClient';
+import { MessageSquare, Trash2, Search, X } from 'lucide-react';
 
 const ChatList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [chatRooms, setChatRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // room id to confirm delete
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (user) loadChats();
@@ -27,9 +32,9 @@ const ChatList = () => {
     }
   };
 
-  // Tentukan nama lawan bicara berdasarkan role user
+  // Nama lawan bicara
   const getOtherName = (room) => {
-    if (room.job_seeker_id === user.id) {
+    if (room.job_seeker_id === user?.id) {
       return room.company_profile?.full_name || 'HRD Perusahaan';
     }
     return room.job_seeker_profile?.full_name || 'Kandidat';
@@ -37,47 +42,113 @@ const ChatList = () => {
 
   const getInitial = (name) => (name || 'H').charAt(0).toUpperCase();
 
+  // Hapus semua pesan & room (hapus riwayat, bukan keluar)
+  const handleDeleteChat = async (roomId) => {
+    setDeletingId(roomId);
+    try {
+      // Hapus semua pesan di room ini
+      await supabase.from('messages').delete().eq('room_id', roomId);
+      // Hapus room
+      await supabase.from('chat_rooms').delete().eq('id', roomId);
+      setChatRooms((prev) => prev.filter((r) => r.id !== roomId));
+    } catch (err) {
+      console.error('Gagal menghapus chat:', err);
+      alert('Gagal menghapus percakapan. Coba lagi.');
+    } finally {
+      setDeletingId(null);
+      setConfirmDelete(null);
+    }
+  };
+
+  const filtered = chatRooms.filter((room) => {
+    const name = getOtherName(room);
+    return name.toLowerCase().includes(search.toLowerCase());
+  });
+
   return (
     <div className="min-h-screen bg-slate-50 font-['Inter'] flex">
       <ChatSidebar />
       <div className="flex-1 flex flex-col min-h-screen">
         <Navbar />
-        <main className="pt-[68px] w-full max-w-[1024px] mx-auto px-6 py-8">
+        <main className="pt-[68px] w-full max-w-[900px] mx-auto px-6 py-8">
           {/* Banner */}
           <section className="w-full rounded-2xl p-8 flex justify-between items-center bg-gradient-to-br from-[#2D52D6] to-[#3B5EEA] mb-6">
             <div className="max-w-lg">
-              <h1 className="font-bold text-[24px] leading-[33px] text-white">
-                Cari pekerjaan dengan mudah, tanpa halangan apa pun
-              </h1>
+              <h1 className="font-bold text-[22px] leading-[30px] text-white">Kotak Masuk Chat</h1>
               <p className="mt-1 font-normal text-[14px] text-[#BEDBFF]">
-                Meningkatkan kepercayaan kepada disabilitas
+                Pesan dari HRD perusahaan tempat kamu melamar
               </p>
             </div>
-            <div className="relative w-[120px] h-[110px] opacity-90 text-white/30">
-              <svg viewBox="0 0 120 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="15" r="10" stroke="currentColor" strokeWidth="3" />
-                <path d="M50 25V55" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                <path d="M50 35L70 40" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                <path d="M50 35L35 45" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                <path d="M30 55H70" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                <path d="M30 55V35" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                <circle cx="45" cy="75" r="18" stroke="currentColor" strokeWidth="3" />
-                <circle cx="45" cy="75" r="4" stroke="currentColor" strokeWidth="2" />
-                <circle cx="75" cy="82" r="8" stroke="currentColor" strokeWidth="3" />
-                <path d="M70 55L75 74" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                <path d="M60 55L65 68H55" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            <div className="relative w-[100px] h-[90px] opacity-80 text-white/30">
+              <svg viewBox="0 0 100 90" fill="none">
+                <path d="M90 10H10C5.58 10 2 13.58 2 18V65C2 69.42 5.58 73 10 73H30L50 88L70 73H90C94.42 73 98 69.42 98 65V18C98 13.58 94.42 10 90 10Z" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="30" cy="41" r="5" fill="currentColor"/>
+                <circle cx="50" cy="41" r="5" fill="currentColor"/>
+                <circle cx="70" cy="41" r="5" fill="currentColor"/>
               </svg>
             </div>
           </section>
 
-          {/* Chat List */}
-          <h2 className="font-bold text-[18px] text-[#1D293D] mb-4">Daftar Pesan</h2>
+          {/* Search & Title */}
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <h2 className="font-bold text-[18px] text-[#1D293D]">
+              Percakapan {chatRooms.length > 0 && <span className="text-blue-600">({chatRooms.length})</span>}
+            </h2>
+            {chatRooms.length > 0 && (
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Cari..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8 pr-3 py-2 rounded-xl border border-slate-200 text-xs bg-white outline-none focus:ring-2 focus:ring-blue-500 w-40"
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} className="absolute right-2 top-2.5 cursor-pointer">
+                    <X className="w-3.5 h-3.5 text-gray-400" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
+          {/* Confirm Delete Modal */}
+          {confirmDelete && (
+            <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                </div>
+                <h3 className="font-bold text-base text-gray-900 text-center mb-2">Hapus Percakapan?</h3>
+                <p className="text-sm text-gray-500 text-center mb-6">
+                  Semua pesan dalam percakapan ini akan dihapus permanen dan tidak bisa dikembalikan.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setConfirmDelete(null)}
+                    className="flex-1 border-2 border-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => handleDeleteChat(confirmDelete)}
+                    disabled={deletingId === confirmDelete}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60 cursor-pointer"
+                  >
+                    {deletingId === confirmDelete ? 'Menghapus...' : 'Hapus'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Chat List */}
           {loading ? (
             <div className="flex flex-col gap-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="bg-white border border-slate-100 rounded-2xl p-5 animate-pulse flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-full bg-slate-200 shrink-0" />
+                  <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
                   <div className="flex-1 space-y-2">
                     <div className="h-4 bg-slate-200 rounded w-1/4" />
                     <div className="h-3 bg-slate-100 rounded w-2/3" />
@@ -85,42 +156,74 @@ const ChatList = () => {
                 </div>
               ))}
             </div>
-          ) : chatRooms.length === 0 ? (
-            <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center">
-              <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+          ) : filtered.length === 0 ? (
+            <div className="bg-white border border-slate-100 rounded-2xl p-14 text-center">
+              <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-400 mx-auto mb-4">
+                <MessageSquare className="w-8 h-8" />
               </div>
-              <h3 className="font-bold text-base text-[#1D293D] mb-1">Belum ada pesan</h3>
-              <p className="text-sm text-[#62748E]">
-                Pesan dari HRD perusahaan akan muncul di sini setelah lamaran kamu diproses.
+              <h3 className="font-bold text-base text-[#1D293D] mb-1">
+                {search ? `Tidak ada percakapan dengan "${search}"` : 'Belum ada pesan'}
+              </h3>
+              <p className="text-sm text-[#62748E] max-w-xs mx-auto">
+                {search
+                  ? 'Coba cari nama lain.'
+                  : 'Pesan dari HRD perusahaan akan muncul di sini setelah lamaran kamu diproses.'}
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {chatRooms.map((room) => {
+              {filtered.map((room) => {
                 const name = getOtherName(room);
                 const initial = getInitial(name);
+                const lastMsg = room.last_message_text;
+                const lastTime = room.last_message_at || room.created_at;
+
                 return (
-                  <button
+                  <div
                     key={room.id}
-                    onClick={() => navigate(`/chat/${room.id}`)}
-                    className="w-full bg-white border border-slate-100 rounded-2xl p-5 flex items-center gap-4 hover:shadow-md transition-shadow text-left cursor-pointer"
+                    className="group w-full bg-white border border-slate-100 rounded-2xl p-5 flex items-center gap-4 hover:shadow-md hover:border-slate-200 transition-all"
                   >
-                    <div className="w-11 h-11 bg-[#DBEAFE] rounded-full flex items-center justify-center shrink-0">
-                      <span className="font-semibold text-[16px] text-[#3B5EEA]">{initial}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[15px] text-[#1D293D]">{name}</p>
+                    {/* Avatar */}
+                    <button
+                      onClick={() => navigate(`/chat/${room.id}`)}
+                      className="w-12 h-12 bg-gradient-to-br from-[#3B5EEA] to-[#2D52D6] rounded-full flex items-center justify-center shrink-0 cursor-pointer"
+                    >
+                      <span className="font-bold text-[18px] text-white">{initial}</span>
+                    </button>
+
+                    {/* Info — clickable */}
+                    <button
+                      onClick={() => navigate(`/chat/${room.id}`)}
+                      className="flex-1 min-w-0 text-left cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-bold text-[15px] text-[#1D293D] truncate">{name}</p>
+                        <span className="font-normal text-[12px] text-[#90A1B9] shrink-0">{timeAgo(lastTime)}</span>
+                      </div>
                       <p className="font-normal text-[13px] text-[#62748E] truncate mt-0.5">
-                        Klik untuk membuka percakapan
+                        {lastMsg || <span className="italic text-[#90A1B9]">Klik untuk membuka percakapan</span>}
                       </p>
+                    </button>
+
+                    {/* Action Buttons — visible on hover */}
+                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => navigate(`/chat/${room.id}`)}
+                        className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold transition-colors cursor-pointer"
+                        title="Buka Chat"
+                      >
+                        Buka
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(room.id); }}
+                        disabled={deletingId === room.id}
+                        className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Hapus Percakapan"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                    <span className="font-normal text-[12px] text-[#90A1B9] shrink-0">
-                      {timeAgo(room.created_at)}
-                    </span>
-                  </button>
+                  </div>
                 );
               })}
             </div>
