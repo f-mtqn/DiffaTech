@@ -246,6 +246,16 @@ export async function fetchJobApplicants(jobId) {
 
 /** Fetch semua pelamar untuk semua job milik company */
 export async function fetchAllCompanyApplicants(companyId) {
+  // Step 1: ambil semua job milik company
+  const { data: companyJobs, error: jobErr } = await supabase
+    .from('job_listings')
+    .select('id')
+    .eq('company_id', companyId);
+  if (jobErr) throw jobErr;
+  if (!companyJobs || companyJobs.length === 0) return [];
+  const jobIds = companyJobs.map((j) => j.id);
+
+  // Step 2: ambil semua applications untuk job-job tersebut
   const { data, error } = await supabase
     .from('applications')
     .select(`
@@ -258,13 +268,10 @@ export async function fetchAllCompanyApplicants(companyId) {
       ),
       job_listings!job_id (id, title, company_id)
     `)
+    .in('job_id', jobIds)
     .order('applied_at', { ascending: false });
   if (error) throw error;
-  // Filter hanya job milik company ini
-  const filtered = (data || []).filter(
-    (app) => app.job_listings?.company_id === companyId
-  );
-  return filtered;
+  return data || [];
 }
 
 /** Update status lamaran (terima/tolak) */
