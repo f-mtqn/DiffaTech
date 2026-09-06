@@ -42,17 +42,24 @@ export default function CompanyDashboard() {
   const totalJobs = jobs.length;
   const activeJobs = jobs.filter((j) => j.is_active).length;
   const totalApplicants = applicants.length;
-  const newApplicants = applicants.filter((a) => a.status === 'review').length;
+  const newApplicants = applicants.filter((a) => a.status === 'pending' || a.status === 'review').length;
 
   const getStatusBadge = (status) => {
     const map = {
+      pending: 'bg-slate-50 text-slate-600 border border-slate-200',
       review: 'bg-amber-50 text-amber-700 border border-amber-200',
       interview: 'bg-blue-50 text-blue-700 border border-blue-200',
       accepted: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
       rejected: 'bg-red-50 text-red-700 border border-red-200',
     };
-    const labels = { review: 'Ditinjau', interview: 'Interview', accepted: 'Diterima', rejected: 'Ditolak' };
-    return { className: map[status] || map.review, label: labels[status] || 'Ditinjau' };
+    const labels = {
+      pending: 'Terkirim',
+      review: 'Ditinjau',
+      interview: 'Interview',
+      accepted: 'Diterima',
+      rejected: 'Ditolak',
+    };
+    return { className: map[status] || map.pending, label: labels[status] || 'Terkirim' };
   };
 
   return (

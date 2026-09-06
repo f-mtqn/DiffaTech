@@ -126,7 +126,7 @@ export async function applyToJob({ jobId, applicantId, coverNote = '' }) {
       job_id: jobId,
       applicant_id: applicantId,
       cover_letter: coverNote,
-      status: 'review',
+      status: 'pending',
     }])
     .select()
     .maybeSingle();
@@ -135,22 +135,6 @@ export async function applyToJob({ jobId, applicantId, coverNote = '' }) {
     // Jika unique constraint error, berarti sudah pernah melamar
     if (error.code === '23505') {
       return { id: null, alreadyApplied: true };
-    }
-    // Fallback status 'pending' jika ada cache constraint lama
-    try {
-      const fallback = await supabase
-        .from('applications')
-        .insert([{
-          job_id: jobId,
-          applicant_id: applicantId,
-          cover_letter: coverNote,
-          status: 'pending',
-        }])
-        .select()
-        .maybeSingle();
-      if (fallback.data) return fallback.data;
-    } catch (fbErr) {
-      console.warn('Fallback apply insert warning:', fbErr);
     }
     throw error;
   }
@@ -203,7 +187,7 @@ export async function fetchMyApplications(applicantId) {
   const { data, error } = await supabase
     .from('applications')
     .select(`
-      id, status, cover_letter, hr_note, interview_date, has_chat,
+      id, job_id, status, cover_letter, hr_note, interview_date, has_chat,
       applied_at, updated_at,
       job_listings (
         id, title, company_name, location, work_type,

@@ -35,13 +35,16 @@ export default function CompanyApplicants() {
     const matchSearch =
       name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchStatus = filterStatus === 'all' || app.status === filterStatus;
+    const matchStatus =
+      filterStatus === 'all' ||
+      (filterStatus === 'review' && (app.status === 'pending' || app.status === 'review')) ||
+      app.status === filterStatus;
     return matchSearch && matchStatus;
   });
 
   const stats = {
     total: applicants.length,
-    review: applicants.filter((a) => a.status === 'review').length,
+    review: applicants.filter((a) => a.status === 'pending' || a.status === 'review').length,
     interview: applicants.filter((a) => a.status === 'interview').length,
     accepted: applicants.filter((a) => a.status === 'accepted').length,
   };
@@ -68,7 +71,7 @@ export default function CompanyApplicants() {
         <div className="flex items-center gap-2 mb-6 flex-wrap">
           {[
             { id: 'all', label: `Semua (${stats.total})` },
-            { id: 'review', label: `Ditinjau (${stats.review})` },
+            { id: 'review', label: `Baru Masuk (${stats.review})` },
             { id: 'interview', label: `Interview (${stats.interview})` },
             { id: 'accepted', label: `Diterima (${stats.accepted})` },
           ].map((tab) => (

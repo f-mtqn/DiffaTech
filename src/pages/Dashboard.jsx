@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ChatSidebar from '../components/ChatSidebar';
 import { useAuth } from '../context/AuthContext';
-import { fetchJobs, applyToJob, checkAlreadyApplied, timeAgo } from '../utils/api';
+import { fetchJobs, applyToJob, checkAlreadyApplied, fetchMyApplications, timeAgo } from '../utils/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -47,13 +47,12 @@ const Dashboard = () => {
 
   const loadMyApplications = async () => {
     try {
-      const { data } = await supabase
-        .from('applications')
-        .select('job_id')
-        .eq('applicant_id', user.id);
-      if (data) {
-        setAppliedJobs(new Set(data.map((a) => a.job_id)));
-      }
+      const data = await fetchMyApplications(user.id);
+      setAppliedJobs(new Set(
+        (data || [])
+          .map((a) => a.job_id || a.job_listings?.id)
+          .filter(Boolean)
+      ));
     } catch (err) {
       console.warn('Failed loading applied jobs status:', err);
     }
