@@ -3,13 +3,13 @@
   # DiffaTech
   ### Empowering Different Abilities in the Digital World
   
-  [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-success?style=for-the-badge)](https://diffahtech.vercel.app)
+  [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-success?style=for-the-badge)](https://diffatech.vercel.app/)
   [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/f-mtqn/DiffaTech)
   [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
   
   **Submission for ITECHNO CUP 2026 - Web Development**
   
-  **By BitTrio**
+  **By ByteTrio**
   
 </div>
 
@@ -35,8 +35,8 @@
 
 | Nama | Peran | GitHub |
 |------|-------|--------|
-| **Mario Auliarahman** | Project Lead & Full Stack Developer | [GitHub](https://github.com/mario-auliarahman) |
-| **Husnul Khotimah** | Frontend Developer | [GitHub](https://github.com/husnulkhotimah) |
+| **Mario Auliarahman** | Project Lead & Full Stack Developer | [GitHub](https://github.com/sayaio) |
+| **Husnul Khotimah** | Frontend Developer | [GitHub](https://github.com/nullhma-lgtm) |
 | **Farabi Arafat Muttaqien** | Backend Developer | [GitHub](https://github.com/f-mtqn) |
 
 ---
@@ -83,24 +83,15 @@ Sektor teknologi berkembang pesat, namun inklusivitas bagi penyandang disabilita
 
 ### Live Demo
 
-🔗 **[Kunjungi Website](https://diffahtech.vercel.app)**
+🔗 **[Kunjungi Website](https://diffatech.vercel.app/)**
 
 ### Screenshot Aplikasi
 
-<div align="center">
-  <img src="./public/screenshots/homepage.png" alt="Homepage" width="800"/>
-  <p><em>Homepage - Tampilan utama DiffaTech</em></p>
-  
-  <img src="./public/screenshots/dashboard.png" alt="Dashboard" width="800"/>
-  <p><em>Dashboard - Panel kontrol pengguna</em></p>
-  
-  <img src="./public/screenshots/job-search.png" alt="Job Search" width="800"/>
-  <p><em>Inclusive Job Search - Pencarian lowongan ramah disabilitas</em></p>
-</div>
+📸 **[https://drive.google.com/drive/folders/19eEu8XY1e-X1faqQ3vqhpZiy0pA7icTG]
 
 ### Video Demo
 
-📹 **[Link Video Demo](#)** _(segera hadir)_
+📹 **[https://drive.google.com/drive/folders/19eEu8XY1e-X1faqQ3vqhpZiy0pA7icTG](#)** _(segera hadir)_
 
 ---
 
@@ -242,7 +233,6 @@ Pastikan Anda telah menginstall:
 - **Node.js** (v18.x atau lebih tinggi)
 - **npm** (v9.x atau lebih tinggi)
 - **Git**
-- Akun **Supabase** (untuk database & auth)
 
 ### Langkah Instalasi
 
@@ -259,28 +249,7 @@ cd DiffaTech
 npm install
 ```
 
-#### 3️⃣ Setup Environment Variables
-
-Buat file `.env` di root directory:
-
-```env
-# Supabase Configuration
-VITE_SUPABASE_URL="https://your-project-id.supabase.co"
-VITE_SUPABASE_ANON_KEY="your_supabase_anon_key"
-```
-
-> **Catatan**: Dapatkan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` dari dashboard Supabase Anda di **Project Settings → API**.
-
-#### 4️⃣ Setup Database
-
-Jalankan migration SQL yang tersedia di folder `backend/migrations/` melalui Supabase SQL Editor atau Supabase CLI:
-
-```bash
-# Jika menggunakan Supabase CLI
-supabase db push
-```
-
-#### 5️⃣ Run Development Server
+#### 3️⃣ Run Development Server
 
 ```bash
 npm run dev
@@ -297,15 +266,6 @@ Aplikasi akan berjalan di `http://localhost:5173`
 ```bash
 # Development mode
 npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
-
-# Linting
-npm run lint
 ```
 
 ### User Guide
@@ -330,7 +290,7 @@ npm run lint
 
 ```
 Development: http://localhost:5173
-Production:  https://diffahtech.vercel.app
+Production:  https://diffatech.vercel.app/
 ```
 
 > DiffaTech menggunakan **Supabase** sebagai backend-as-a-service. Semua operasi data dilakukan melalui Supabase Client SDK langsung dari frontend.
@@ -426,7 +386,7 @@ npm run build
 ✅ Dyslexia-Friendly Mode toggle
 ✅ Navigasi keyboard (Tab & Enter)
 ✅ Kompatibilitas screen reader (NVDA/VoiceOver)
-⬜ Chat HRD (dalam pengembangan)
+✅ Chat HRD (dalam pengembangan)
 ⬜ Voice Search (dalam pengembangan)
 ```
 
@@ -440,6 +400,6 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 
 <div align="center">
 
-  **Made with ❤️ by BitTrio for ITECHNO CUP 2026**
+  **Made with ❤️ by ByteTrio for ITECHNO CUP 2026**
 
 </div>
