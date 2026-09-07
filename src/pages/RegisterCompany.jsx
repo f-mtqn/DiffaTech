@@ -55,6 +55,7 @@ export default function RegisterCompany() {
         industries: filteredIndustri,
         social_media: { linkedin, youtube, instagram, twitter }
       });
+      localStorage.setItem('diffatech_role', 'company');
       navigate('/login');
     } catch (err) {
       setError('Gagal mendaftar perusahaan. Coba lagi.');

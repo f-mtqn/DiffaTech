@@ -3,13 +3,13 @@
   # DiffaTech
   ### Empowering Different Abilities in the Digital World
   
-  [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-success?style=for-the-badge)](https://[URL_DEMO])
-  [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://[URL_REPO])
+  [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-success?style=for-the-badge)](https://diffatech.vercel.app/)
+  [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/f-mtqn/DiffaTech)
   [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
   
   **Submission for ITECHNO CUP 2026 - Web Development**
   
-  **By BitTrio**
+  **By ByteTrio**
   
 </div>
 
@@ -25,6 +25,7 @@
 - [Instalasi & Setup](#-instalasi--setup)
 - [Penggunaan](#-penggunaan)
 - [API Documentation](#-api-documentation)
+- [Testing](#-testing)
 - [Tim Developer](#-tim-developer)
 - [Lisensi](#-lisensi)
 
@@ -34,9 +35,9 @@
 
 | Nama | Peran | GitHub |
 |------|-------|--------|
-| **Mario Auliarahman** | Project Lead & Full Stack Developer | [GitHub](https://github.com/[username1]) |
-| **Husnul Khotimah** | Frontend Developer | [GitHub](https://github.com/[username2]) |
-| **Farabi Arafat Muttaqien** | Backend Developer | [GitHub](https://github.com/[username3]) |
+| **Mario Auliarahman** | Project Lead & Full Stack Developer | [GitHub](https://github.com/sayaio) |
+| **Husnul Khotimah** | Frontend Developer | [GitHub](https://github.com/nullhma-lgtm) |
+| **Farabi Arafat Muttaqien** | Backend Developer | [GitHub](https://github.com/f-mtqn) |
 
 ---
 
@@ -76,7 +77,21 @@ Sektor teknologi berkembang pesat, namun inklusivitas bagi penyandang disabilita
 - **Voice Search** - Pencarian lowongan menggunakan perintah suara untuk memudahkan pengguna dengan gangguan motorik.
 - **Inclusive Resume Builder** - Pembuatan CV otomatis yang menonjolkan keahlian IT tanpa mengesampingkan kebutuhan aksesibilitas.
 
+---
 
+## 📸 Demo & Screenshot
+
+### Live Demo
+
+🔗 **[Kunjungi Website](https://diffatech.vercel.app/)**
+
+### Screenshot Aplikasi
+
+📸 **[https://drive.google.com/drive/folders/19eEu8XY1e-X1faqQ3vqhpZiy0pA7icTG]
+
+### Video Demo
+
+📹 **[https://drive.google.com/drive/folders/19eEu8XY1e-X1faqQ3vqhpZiy0pA7icTG](#)** _(segera hadir)_
 
 ---
 
@@ -86,42 +101,56 @@ Sektor teknologi berkembang pesat, namun inklusivitas bagi penyandang disabilita
 
 #### Frontend
 ```
-Framework      : React 
-Styling        : Tailwind CSS
-UI Components  : Schadcn/UI & Lucide React
-Form Handling  : React Hook Form & Zod
+Framework    : React 19
+Routing      : React Router DOM v7
+Styling      : Tailwind CSS v4
+UI Components: Lucide React
+Build Tool   : Vite 8
 ```
 
-#### Backend
+#### Backend & Database
 ```
-Database     : PostgreSQL
+Database     : PostgreSQL (via Supabase)
+BaaS         : Supabase (Auth, Storage, Realtime)
 ORM          : Prisma
-Auth         : NextAuth
+Auth         : Supabase Auth (JWT)
 ```
 
 #### DevOps & Tools
 ```
-Deployment     : Vercel
-Package Manager: npm
+Deployment   : Vercel
+Package Mgr  : npm
+Linting      : Oxlint
+Version Ctrl : Git & GitHub
 ```
 
 ### Alasan Pemilihan Teknologi
 
 | Teknologi | Alasan Pemilihan |
 |-----------|------------------|
-| **Next.js** | Mendukung SSR untuk SEO yang lebih baik dan performa aksesibilitas yang cepat. |
-| **Tailwind CSS** | Memudahkan kustomisasi tema untuk fitur High Contrast dan Dyslexia-friendly mode. |
-| **PostgreSQL & Prisma** | Menjamin integritas data yang kompleks untuk relasi lowongan dan profil kandidat. |
-
+| **React 19** | Library UI paling mature dengan ekosistem luas; mendukung pengembangan antarmuka aksesibel secara native melalui ARIA attributes. |
+| **Tailwind CSS v4** | Memudahkan kustomisasi tema untuk fitur High Contrast Mode dan Dyslexia-friendly mode tanpa overhead CSS tambahan. |
+| **Supabase** | Menyediakan PostgreSQL managed, Auth, dan Realtime out-of-the-box sehingga tim dapat fokus pada fitur aksesibilitas tanpa mengelola infrastruktur server. |
+| **Vite 8** | Build tool modern dengan HMR yang sangat cepat untuk produktivitas pengembangan yang tinggi. |
+| **React Router DOM v7** | Penanganan routing client-side yang powerful dengan data loaders untuk pengalaman navigasi yang mulus. |
 
 ### Dependencies Utama
 
 ```json
 {
   "dependencies": {
-    "[package-1]": "^x.x.x",
-    "[package-2]": "^x.x.x",
-    "[package-3]": "^x.x.x"
+    "@supabase/supabase-js": "^2.112.3",
+    "lucide-react": "^1.34.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.2.0",
+    "oxlint": "^1.75.0"
   }
 }
 ```
@@ -133,36 +162,65 @@ Package Manager: npm
 ### System Architecture
 
 ```
-[Tambahkan diagram arsitektur sistem - bisa menggunakan Mermaid atau gambar]
+┌─────────────────────────────────────────────────────────┐
+│                      User Browser                       │
+└───────────────────────┬─────────────────────────────────┘
+                        │ HTTPS
+                        ▼
+┌─────────────────────────────────────────────────────────┐
+│                   Vercel CDN (React App)                │
+│                     Vite + React 19                     │
+└───────────┬─────────────────────────────────────────────┘
+            │ Supabase JS SDK
+            ▼
+┌─────────────────────────────────────────────────────────┐
+│                        Supabase                         │
+│  ┌──────────────┐  ┌───────────┐  ┌──────────────────┐  │
+│  │  PostgreSQL  │  │   Auth    │  │  Realtime/Storage│  │
+│  │  (Database)  │  │  (JWT)    │  │  (Chat & Files)  │  │
+│  └──────────────┘  └───────────┘  └──────────────────┘  │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Database Schema
+### Database Schema (Ringkasan)
 
 ```
-[Tambahkan diagram ERD atau schema database]
+users ──────────── profiles
+  │                    │
+  │               disabilities (M:N via user_disabilities)
+  │
+  ├── applications ── jobs ── companies
+  │                    │
+  │              job_disabilities (M:N)
+  │              job_facilities (M:N)
+  │
+  └── reviews ──────── companies
 ```
 
 ### Folder Structure
 
 ```
 DiffaTech/
-├── prisma/                 # Skema Database (Prisma ORM)
-├── public/                 # Aset statis (logo, gambar disabilitas)
+├── backend/
+│   └── migrations/         # Skema & migrasi database (Supabase SQL)
+├── public/
+│   └── screenshots/        # Aset publik & screenshot
 ├── src/
-│   ├── app/                # Routing Utama (Next.js App Router)
-│   │   ├── (auth)/         # Grouping Login & Register
-│   │   ├── (dashboard)/    # Grouping Dashboard User & Recruiter
-│   │   ├── cari-lowongan/  # Halaman pencarian kerja
-│   │   └── api/            # API Endpoints (jika tidak pakai Server Actions)
-│   ├── components/
-│   │   ├── ui/             # Komponen dasar Shadcn (Button, Input, Card, dll)
-│   │   ├── shared/         # Komponen global (Navbar, Sidebar, Footer)
-│   │   └── parts/          # Komponen spesifik fitur (JobCard, FilterBar)
-│   ├── hooks/              # Custom hooks (useMobile, useAccessibility)
-│   ├── lib/                # Konfigurasi utilitas (utils.ts, prisma.ts)
-│   └── types/              # Definisi TypeScript interface
-├── tailwind.config.js      # Konfigurasi desain (warna utama DiffaTech)
-└── package.json            # Daftar dependensi utama
+│   ├── assets/             # Gambar, ikon, dan aset statis
+│   ├── components/         # Komponen UI yang dapat digunakan ulang
+│   ├── context/            # React Context (Auth, Accessibility, Theme)
+│   ├── data/               # Data statis / mock data
+│   ├── pages/              # Komponen halaman (setiap route)
+│   ├── utils/              # Fungsi utilitas & Supabase client helper
+│   ├── App.jsx             # Root component & konfigurasi routing
+│   ├── main.jsx            # Entry point aplikasi
+│   └── index.css           # Global styles & Tailwind directives
+├── .env                    # Environment variables (tidak di-commit)
+├── .gitignore
+├── index.html              # HTML template
+├── package.json
+├── vite.config.js          # Konfigurasi Vite
+└── README.md
 ```
 
 ---
@@ -173,9 +231,8 @@ DiffaTech/
 
 Pastikan Anda telah menginstall:
 - **Node.js** (v18.x atau lebih tinggi)
-- **npm** atau **pnpm**
-- **PostgreSQL** (Lokal atau Cloud seperti Supabase)
-
+- **npm** (v9.x atau lebih tinggi)
+- **Git**
 
 ### Langkah Instalasi
 
@@ -192,33 +249,13 @@ cd DiffaTech
 npm install
 ```
 
-#### 3️⃣ Setup Environment Variables
-
-Buat file `.env` di root directory:
-
-```env
-# .env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-#### 4️⃣ Setup Database
-
-```bash
-# Jalankan migrasi database
-npm run db:migrate
-
-# Seed data (opsional)
-npm run db:seed
-```
-
-#### 5️⃣ Run Development Server
+#### 3️⃣ Run Development Server
 
 ```bash
 npm run dev
 ```
 
-Aplikasi akan berjalan di `http://localhost:3000`
+Aplikasi akan berjalan di `http://localhost:5173`
 
 ---
 
@@ -229,36 +266,21 @@ Aplikasi akan berjalan di `http://localhost:3000`
 ```bash
 # Development mode
 npm run dev
-
-# Production build
-npm run build
-npm run start
-
-# Linting
-npm run lint
 ```
 
 ### User Guide
 
-#### Untuk Pengguna Umum
+#### Untuk Pencari Kerja (Talent)
 
-1. **Registrasi/Login**: Kunjungi halaman utama dan klik tombol "Daftar". Masukkan nama lengkap, email, dan password.
-Jika sudah memiliki akun, klik "Masuk" dan gunakan email serta password terdaftar untuk mengakses dashboard.
-2. **Pencarian Lowongan Inklusif**: Masuk ke menu "Cari Lowongan". Gunakan fitur pencarian di bagian atas untuk mencari posisi IT spesifik (contoh: "Frontend Developer").
-Gunakan panel Filter di sisi kiri untuk menyaring pekerjaan berdasarkan rentang gaji, lokasi, sistem kerja (Remote/Full-time), serta kategori ramah disabilitas tertentu.
-3. **Update Profil & Resume**: Klik menu "Update Profile" untuk melengkapi data diri, pengalaman kerja, dan pendidikan.
-Penting: Pastikan mengisi bagian "Disabilitas" agar sistem dapat memberikan rekomendasi lowongan yang paling sesuai dengan kebutuhan aksesibilitas Anda. Unggah CV dan sertifikat pendukung untuk menarik perhatian rekruter.
+1. **Registrasi/Login**: Kunjungi halaman utama dan klik tombol **"Daftar"**. Masukkan nama lengkap, email, dan password. Jika sudah memiliki akun, klik **"Masuk"** untuk mengakses dashboard.
+2. **Pencarian Lowongan Inklusif**: Masuk ke menu **"Cari Lowongan"**. Gunakan fitur pencarian untuk mencari posisi IT spesifik (contoh: "Frontend Developer"). Gunakan panel Filter untuk menyaring berdasarkan rentang gaji, lokasi, sistem kerja (Remote/Full-time), dan kategori ramah disabilitas.
+3. **Update Profil & Resume**: Klik menu **"Update Profile"** untuk melengkapi data diri, pengalaman kerja, dan pendidikan. Isi bagian **"Disabilitas"** agar sistem memberikan rekomendasi lowongan yang sesuai kebutuhan aksesibilitas Anda.
 
-#### Untuk Admin
+#### Untuk Perusahaan (Rekruter)
 
-1. **Akses Dashboard Rekruter**: Masuk menggunakan akun perusahaan melalui tombol "Daftar Perusahaan" atau login khusus rekruter.
-Setelah login, Anda akan diarahkan ke Dashboard Utama yang menampilkan ringkasan jumlah pelamar, lowongan aktif, dan kandidat yang sedang diproses.
-2. **Posting Lowongan Kerja Baru**: Pilih menu "Posting Lowongan Baru" di sidebar.
-Isi detail pekerjaan meliputi Nama Posisi, Deskripsi, Jobdesk, serta kriteria minimum.
-Tentukan jenis disabilitas yang dapat diakomodasi dan fasilitas pendukung yang tersedia di kantor Anda, lalu klik "Posting Kerja".
-3. **Manajemen Pelamar & Seleksi**: Buka menu "Daftar Kandidat Saya" untuk melihat daftar pelamar pada setiap lowongan.
-Klik "Lihat Kandidat" pada nama pelamar untuk meninjau detail profil, skill, dan sertifikat mereka secara mendalam.
-Gunakan fitur "Chat HRD" untuk berinteraksi langsung dengan kandidat terpilih untuk proses interview lebih lanjut.
+1. **Akses Dashboard Rekruter**: Masuk menggunakan akun perusahaan melalui tombol **"Daftar Perusahaan"**. Setelah login, Anda akan diarahkan ke Dashboard yang menampilkan ringkasan pelamar dan lowongan aktif.
+2. **Posting Lowongan Kerja Baru**: Pilih menu **"Posting Lowongan Baru"** di sidebar. Isi detail pekerjaan, tentukan jenis disabilitas yang dapat diakomodasi, dan fasilitas pendukung yang tersedia, lalu klik **"Posting Kerja"**.
+3. **Manajemen Pelamar & Seleksi**: Buka menu **"Daftar Kandidat Saya"** untuk melihat daftar pelamar. Gunakan fitur **"Chat HRD"** untuk berinteraksi langsung dengan kandidat terpilih.
 
 ---
 
@@ -267,43 +289,75 @@ Gunakan fitur "Chat HRD" untuk berinteraksi langsung dengan kandidat terpilih un
 ### Base URL
 
 ```
-Development: http://localhost:3000/api
-Production:  https://[domain]/api
+Development: http://localhost:5173
+Production:  https://diffatech.vercel.app/
 ```
 
-### Endpoints
+> DiffaTech menggunakan **Supabase** sebagai backend-as-a-service. Semua operasi data dilakukan melalui Supabase Client SDK langsung dari frontend.
+
+### Supabase Endpoints (via Client SDK)
 
 #### Authentication
 
-```http
-POST /api/auth/register
-POST /api/auth/login
-POST /api/auth/logout
-GET  /api/auth/me
+```javascript
+// Register
+await supabase.auth.signUp({ email, password })
+
+// Login
+await supabase.auth.signInWithPassword({ email, password })
+
+// Logout
+await supabase.auth.signOut()
+
+// Get current user
+await supabase.auth.getUser()
 ```
 
-#### [Resource 1]
+#### Jobs (Lowongan)
 
-```http
-GET    /api/[resource]       # Get all
-GET    /api/[resource]/:id   # Get by ID
-POST   /api/[resource]       # Create
-PUT    /api/[resource]/:id   # Update
-DELETE /api/[resource]/:id   # Delete
+```javascript
+// Get all active jobs
+supabase.from('jobs').select('*, companies(*)').eq('is_active', true)
+
+// Get job by ID
+supabase.from('jobs').select('*').eq('id', jobId).single()
+
+// Create job (rekruter only)
+supabase.from('jobs').insert({ title, description, company_id, ...rest })
+
+// Update job
+supabase.from('jobs').update({ ...jobData }).eq('id', jobId)
+
+// Delete job
+supabase.from('jobs').delete().eq('id', jobId)
+```
+
+#### Applications (Lamaran)
+
+```javascript
+// Get applications for a job
+supabase.from('applications').select('*, profiles(*)').eq('job_id', jobId)
+
+// Submit application
+supabase.from('applications').insert({ job_id, user_id, cover_letter })
 ```
 
 ### Example Request
 
 ```javascript
-// Login
-const response = await fetch('/api/auth/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    email: 'user@example.com',
-    password: 'password123'
-  })
-});
+// Fetch inclusive job listings with disability filter
+const { data, error } = await supabase
+  .from('jobs')
+  .select(`
+    *,
+    companies (*),
+    job_disabilities (disability_types (*))
+  `)
+  .eq('is_active', true)
+  .order('created_at', { ascending: false });
+
+if (error) console.error(error);
+else console.log(data);
 ```
 
 ---
@@ -313,26 +367,27 @@ const response = await fetch('/api/auth/login', {
 ### Running Tests
 
 ```bash
-# Unit tests
-npm run test
+# Linting (static analysis)
+npm run lint
 
-# Integration tests
-npm run test:integration
-
-# E2E tests
-npm run test:e2e
-
-# Test coverage
-npm run test:coverage
+# Build check (pastikan tidak ada error saat build)
+npm run build
 ```
 
-### Test Coverage
+> Pengujian unit dan E2E sedang dalam pengembangan. Kontribusi untuk menambahkan test suite sangat disambut.
+
+### Manual Testing Checklist
 
 ```
-Statements   : XX%
-Branches     : XX%
-Functions    : XX%
-Lines        : XX%
+✅ Registrasi & Login (Talent & Rekruter)
+✅ Pencarian lowongan dengan filter disabilitas
+✅ Submit lamaran kerja
+✅ Posting lowongan (Rekruter)
+✅ Dyslexia-Friendly Mode toggle
+✅ Navigasi keyboard (Tab & Enter)
+✅ Kompatibilitas screen reader (NVDA/VoiceOver)
+✅ Chat HRD (dalam pengembangan)
+⬜ Voice Search (dalam pengembangan)
 ```
 
 ---
@@ -345,8 +400,6 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 
 <div align="center">
 
-  **Made with ❤️ by BitTrio for ITECHNO CUP 2026**
+  **Made with ❤️ by ByteTrio for ITECHNO CUP 2026**
 
-  
 </div>
-

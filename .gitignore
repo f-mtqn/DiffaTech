@@ -27,3 +27,10 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# MCP Configuration & Secrets
+.mcp/
+mcp_config.json
+mcp.json
+.mcp_config.json
+*.mcp.json

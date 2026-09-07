@@ -1,143 +1,96 @@
-# disLok — LinkedIn for Disabilities Web App
+# Fix: Pelamar Tidak Muncul di Dashboard Perusahaan + Status Lamaran Loncat
 
-Platform kerja inklusif untuk talenta disabilitas. Website ini mirip LinkedIn tetapi difokuskan untuk penyandang disabilitas. Scope saat ini: **Login, Register, dan Dashboard**.
+## Rangkuman Masalah
 
-## Ringkasan dari Desain Mockup
+Ada 3 bug utama yang saling terkait:
 
-Berdasarkan semua PNG yang saya lihat:
+### Bug 1: Pelamar Tidak Muncul di Dashboard Perusahaan
+**Root cause**: `fetchAllCompanyApplicants()` dan `fetchJobApplicants()` di [api.js](file:///c:/Users/USER/Desktop/Tel%20-%20U/File%20Lomba/ITechnoCup/code/DiffaTech/src/utils/api.js) mencoba join ke `job_seeker_profiles!applicant_id`, tapi **tidak ada Foreign Key** dari `applications.applicant_id` ke `job_seeker_profiles.id`. PostgREST tidak bisa resolve relationship ini → query error → catch block mengembalikan array kosong → dashboard perusahaan menampilkan "Belum ada pelamar".
 
-| Halaman | Detail |
-|---|---|
-| **Login (Pencari Kerja & Perusahaan)** | Split layout: kiri foto hero, kanan form. Toggle tab "Pencari Kerja" / "Perusahaan". Field: Email, Password, checkbox Ingat Saya, link Lupa Password, tombol "Masuk" (biru), link "Daftar" |
-| **Registrasi Pilihan** | Split layout sama. Pilih jenis akun: "Pencari Kerja" atau "Perusahaan" dengan card selection |
-| **Registrasi Pencari Kerja** | Split layout. Field: Nama Lengkap, Email, Password, Konfirmasi Password. Disclaimer terms, tombol "Daftar" |
-| **Registrasi Perusahaan** | Full-width form panjang: Nama Perusahaan, URL Website, Deskripsi, Alamat, Logo URL, Bidang Industri, Media Sosial, Pernyataan Kelayakan & Persetujuan |
-| **Dashboard** | Sidebar kiri (navigasi: Dasboard, Cari Lowongan, Lamaran Saya, Notifikasi, Chat HRD). Konten utama: profil user, skills, education, pengalaman. Sidebar kanan: statistik lamaran, Tentang Saya, CV, Sertikasi |
+**Fix**: 
+1. Tambah FK dari `applications.applicant_id` → `job_seeker_profiles(id)` di Supabase.
+2. Atau, ubah query agar tidak pakai hint `!applicant_id` — gunakan 2-step query: fetch applications + profiles terpisah, lalu join secara manual.
 
-## Stack Teknologi
+> [!IMPORTANT]
+> Pendekatan yang dipilih: **Tambah FK** di database (lebih bersih, PostgREST bisa resolve otomatis).
 
-Sesuai notes, menggunakan:
-- **Frontend**: React + Vite + Tailwind CSS (user request explicit di notes)
-- **Auth & DB**: Supabase (`@supabase/supabase-js`)
-- **Routing**: `react-router-dom`
-- **Struktur**: `frontend/` folder terpisah
+---
+
+### Bug 2: Status Lamaran Langsung Loncat ke Step 2 ("Tinjau Berkas")
+**Root cause**: Di `applyToJob()` (api.js line 129), status awal diset `'review'` → dan di `getApplicationStatusInfo()`, `review` dimapping ke `step: 2`. Padahal seharusnya lamaran baru → `pending` (step 1: "Terkirim"), lalu perusahaan yang mengubahnya ke `review` saat mulai meninjau.
+
+**Fix**:
+1. Ubah default insert status di `applyToJob()` dari `'review'` → `'pending'`.
+2. Update counter di `CompanyDashboard.jsx` agar `newApplicants` menghitung `pending` + `review`.
+3. Update `getStatusBadge()` di `CompanyDashboard.jsx` agar handle status `pending`.
+
+---
+
+### Bug 3: Tombol "Lamar Kerja" Tidak Ter-disable untuk Job yang Sudah Dilamar (Bisa Diklik 2 Kali)
+**Root cause**: `loadMyApplications()` di [Dashboard.jsx](file:///c:/Users/USER/Desktop/Tel%20-%20U/File%20Lomba/ITechnoCup/code/DiffaTech/src/pages/Dashboard.jsx) menggunakan `supabase` secara langsung tapi **tidak pernah meng-import** `supabase`. Akibatnya function error saat runtime, `appliedJobs` Set tetap kosong, dan semua tombol "Lamar Kerja" selalu aktif.
+
+**Fix**: Ganti `supabase` direct call dengan `fetchMyApplications()` dari `api.js` yang sudah tersedia, lalu extract `job_id` dari hasilnya.
+
+---
 
 ## Proposed Changes
 
-### 1. Project Setup (`frontend/`)
+### Database (Supabase Migration)
 
-#### [NEW] `frontend/` — Vite + React Project
-- Inisialisasi project dengan `npx create-vite@latest ./ --template react`
-- Install dependencies: `@supabase/supabase-js`, `react-router-dom`
-- Install & setup Tailwind CSS v3
+Tambah FK dari `applications.applicant_id` ke `job_seeker_profiles(id)` agar PostgREST bisa resolve join.
 
-#### [NEW] `frontend/.env`
-- `VITE_SUPABASE_URL=https://khupozasdweezkqnqxdt.supabase.co`
-- `VITE_SUPABASE_ANON_KEY=<anon key dari notes>`
-
----
-
-### 2. Supabase Client
-
-#### [NEW] `frontend/src/utils/supabaseClient.js`
-- `createClient()` dengan env variables
-- Export singleton client
+```sql
+ALTER TABLE applications
+  ADD CONSTRAINT fk_applications_job_seeker_profiles
+  FOREIGN KEY (applicant_id) REFERENCES job_seeker_profiles(id)
+  ON DELETE CASCADE;
+```
 
 ---
 
-### 3. Auth Context
+### Frontend
 
-#### [NEW] `frontend/src/context/AuthContext.jsx`
-- React context untuk session management
-- `onAuthStateChange` listener
-- Expose: `user`, `session`, `loading`, `signUp`, `signIn`, `signOut`
+#### [MODIFY] [api.js](file:///c:/Users/USER/Desktop/Tel%20-%20U/File%20Lomba/ITechnoCup/code/DiffaTech/src/utils/api.js)
 
----
+1. **`applyToJob()`**: Ubah status awal insert dari `'review'` → `'pending'`, dan hapus fallback insert yang pakai `'pending'`.
+2. **`getApplicationStatusInfo()`**: Pastikan mapping `pending` → step 1 sudah benar (sudah ada, tinggal verifikasi).
 
-### 4. Halaman Login (`/login`)
+#### [MODIFY] [Dashboard.jsx](file:///c:/Users/USER/Desktop/Tel%20-%20U/File%20Lomba/ITechnoCup/code/DiffaTech/src/pages/Dashboard.jsx)
 
-#### [NEW] `frontend/src/pages/Login.jsx`
-- **Layout**: Split 50/50 — kiri hero image, kanan form
-- **Tab toggle**: "Pencari Kerja" / "Perusahaan" (mengubah label tombol)
-- **Form fields**: Email, Password
-- **Features**: Ingat Saya checkbox, Lupa Password link, error message
-- **Action**: `supabase.auth.signInWithPassword()` → redirect ke `/dashboard`
-- **Link**: "Belum Punya Akun? Daftar" → ke `/register`
+1. Import `fetchMyApplications` dari api.js.
+2. Ganti `loadMyApplications()` agar pakai `fetchMyApplications(user.id)` daripada `supabase` langsung.
 
----
+#### [MODIFY] [CompanyDashboard.jsx](file:///c:/Users/USER/Desktop/Tel%20-%20U/File%20Lomba/ITechnoCup/code/DiffaTech/src/pages/CompanyDashboard.jsx)
 
-### 5. Halaman Register
+1. `newApplicants` counter: hitung `pending` + `review`.
+2. `getStatusBadge()`: tambah entry untuk status `pending`.
 
-#### [NEW] `frontend/src/pages/RegisterChoice.jsx` (`/register`)
-- **Layout**: Split 50/50 — kiri hero image, kanan pilihan
-- **2 card pilihan**: "Pencari Kerja" & "Perusahaan" dengan icon dan deskripsi
-- **Link**: "Sudah Punya Akun? Masuk" → ke `/login`
+#### [MODIFY] [CompanyApplicants.jsx](file:///c:/Users/USER/Desktop/Tel%20-%20U/File%20Lomba/ITechnoCup/code/DiffaTech/src/pages/CompanyApplicants.jsx)
 
-#### [NEW] `frontend/src/pages/RegisterJobSeeker.jsx` (`/register/pencari-kerja`)
-- **Layout**: Split 50/50
-- **Fields**: Nama Lengkap, Email, Password, Konfirmasi Password
-- **Disclaimer**: Syarat & Ketentuan, Kebijakan Privasi
-- **Action**: `supabase.auth.signUp()` dengan metadata `{role: 'job_seeker', full_name}`
-- **Link**: "Kembali pilih jenis akun"
-
-#### [NEW] `frontend/src/pages/RegisterCompany.jsx` (`/register/perusahaan`)
-- **Layout**: Full-width centered form (sesuai desain)
-- **Fields**: Nama Perusahaan, URL Website, Deskripsi, Alamat, Logo URL, Bidang Industri (dynamic list), Media Sosial (LinkedIn, YouTube, Instagram, Twitter)
-- **Pernyataan Kelayakan**: Checkbox persetujuan disability-friendly commitment
-- **Action**: `supabase.auth.signUp()` dengan metadata `{role: 'company', company_name, ...}`
+1. Stats `review` counter: hitung `pending` + `review` bersama sebagai "Baru Masuk".
 
 ---
 
-### 6. Dashboard (`/dashboard`)
+### Data Fix
 
-#### [NEW] `frontend/src/pages/Dashboard.jsx`
-- **Protected route** — redirect ke `/login` kalau belum ada session
-- **Layout 3 kolom**:
-  - **Sidebar kiri**: Logo "disLok", user info, navigasi (Dasboard, Cari Lowongan, Lamaran Saya, Notifikasi, Chat HRD)
-  - **Konten utama**: Hero text, Profile card (avatar, email, edit), Tipe Pekerjaan tags, Skills tags, Education, Pengalaman (list)
-  - **Sidebar kanan**: Statistik lamaran (4 box grid), Tentang Saya, CV card, Sertikasi card
+Update 4 applications yang saat ini berstatus `review` (yang seharusnya `pending` karena belum ditinjau perusahaan) kembali ke `pending`:
+```sql
+UPDATE applications SET status = 'pending' WHERE status = 'review';
+```
 
----
-
-### 7. Protected Route & Routing
-
-#### [NEW] `frontend/src/components/ProtectedRoute.jsx`
-- Cek session dari AuthContext
-- Redirect ke `/login` jika tidak ada session
-
-#### [MODIFY] `frontend/src/App.jsx`
-- Setup `BrowserRouter` + Routes:
-  - `/login` → Login
-  - `/register` → RegisterChoice
-  - `/register/pencari-kerja` → RegisterJobSeeker
-  - `/register/perusahaan` → RegisterCompany
-  - `/dashboard` → Dashboard (protected)
-  - `/` → redirect ke `/login`
+> [!NOTE]
+> Ini opsional — hanya untuk memperbaiki data dummy lama agar konsisten dengan alur baru. Semua 4 lamaran `review` + 2 `pending` akan menjadi 6 `pending` + 1 `accepted`.
 
 ---
-
-### 8. Styling & Assets
-
-- **Color palette**: Primary blue `#2563EB` (sesuai desain), white background, light grays
-- **Font**: Inter (Google Fonts) sesuai vibe desain
-- **Hero image**: Generate gambar hero untuk panel kiri login/register
-- **Branding**: Logo text "disLok" warna biru bold
 
 ## Verification Plan
 
+### Automated Tests
+```bash
+npx vite build
+```
+
 ### Manual Verification
-- `npm run dev` dan test semua flow di browser:
-  1. Buka `/` → redirect ke `/login`
-  2. Login page tampil sesuai desain, tab toggle berfungsi
-  3. Klik "Daftar" → ke `/register` (pilihan)
-  4. Pilih "Pencari Kerja" → form register, isi → signup berhasil
-  5. Pilih "Perusahaan" → form register panjang tampil benar
-  6. Login dengan akun baru → redirect ke `/dashboard`
-  7. Dashboard tampil 3 kolom, info user, tombol logout berfungsi
-  8. Akses `/dashboard` tanpa login → redirect ke `/login`
-
-> [!NOTE]
-> Saya akan menggunakan **Tailwind CSS** sesuai notes kamu. Untuk hero image di panel kiri, saya akan generate gambar yang mirip tema disability-friendly workplace daripada menggunakan placeholder.
-
-> [!IMPORTANT]
-> **Supabase keys** dari notes kamu akan saya masukkan ke file `.env`. Pastikan file `.env` tidak di-commit ke Git. Saya akan tambahkan ke `.gitignore`.
+- Login sebagai `ceo@gmail.com` → cek Company Dashboard → pastikan 7 pelamar muncul
+- Login sebagai `test@gmail.com` → buka Dashboard → pastikan job yang sudah dilamar bertanda "Terkirim ✓" 
+- Lamar job baru → cek "Lamaran Saya" → status harus di step 1 ("Terkirim")
