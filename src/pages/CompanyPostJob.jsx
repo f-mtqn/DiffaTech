@@ -8,6 +8,7 @@ import { postJob } from '../utils/api';
 const CompanyPostJob = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const companyMeta = user?.user_metadata || {}; 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
