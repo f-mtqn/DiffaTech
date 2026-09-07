@@ -87,11 +87,11 @@ Sektor teknologi berkembang pesat, namun inklusivitas bagi penyandang disabilita
 
 ### Screenshot Aplikasi
 
-📸 **[https://drive.google.com/drive/folders/19eEu8XY1e-X1faqQ3vqhpZiy0pA7icTG]
+📸 **[https://drive.google.com/drive/folders/19eEu8XY1e-X1faqQ3vqhpZiy0pA7icTG](#)**
 
 ### Video Demo
 
-📹 **[https://drive.google.com/drive/folders/19eEu8XY1e-X1faqQ3vqhpZiy0pA7icTG](#)** _(segera hadir)_
+📹 **[https://drive.google.com/drive/folders/19eEu8XY1e-X1faqQ3vqhpZiy0pA7icTG](#)**
 
 ---
 
@@ -386,8 +386,7 @@ npm run build
 ✅ Dyslexia-Friendly Mode toggle
 ✅ Navigasi keyboard (Tab & Enter)
 ✅ Kompatibilitas screen reader (NVDA/VoiceOver)
-✅ Chat HRD (dalam pengembangan)
-⬜ Voice Search (dalam pengembangan)
+✅ Chat HRD (Berfungsi)
 ```
 
 ---
